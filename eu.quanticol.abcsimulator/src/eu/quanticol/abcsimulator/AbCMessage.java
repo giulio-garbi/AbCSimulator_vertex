@@ -22,7 +22,7 @@ public class AbCMessage {
 	private LinkedList<Integer> route;
 
 	
-	/**
+	/*
 	 * @param type
 	 * @param messageIndex
 	 * @param route
