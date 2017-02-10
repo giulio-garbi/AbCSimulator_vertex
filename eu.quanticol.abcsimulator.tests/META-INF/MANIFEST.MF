@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Tests
+Bundle-SymbolicName: eu.quanticol.abcsimulator.tests
+Bundle-Version: 1.0.0.qualifier
+Export-Package: eu,
+ eu.quanticol,
+ eu.quanticol.abcsimulator,
+ eu.quanticol.abcsimulator.tests
+Require-Bundle: org.eclipse.draw2d;bundle-version="3.10.100",
+ org.eclipse.nebula.cwt;bundle-version="1.0.0",
+ org.eclipse.nebula.visualization.widgets;bundle-version="1.0.0",
+ org.eclipse.nebula.visualization.xygraph;bundle-version="2.1.0"
+Import-Package: org.cmg.ml.sam.sim,
+ org.cmg.ml.sam.sim.sampling
