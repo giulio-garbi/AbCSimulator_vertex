@@ -1,0 +1,15 @@
+/AbstractLeastSquaresOptimizerAbstractTest.java
+/AbstractLeastSquaresOptimizerTest.java
+/AbstractLeastSquaresOptimizerTestValidation.java
+/CircleProblem.java
+/CircleScalar.java
+/CircleVectorial.java
+/GaussNewtonOptimizerTest.java
+/LevenbergMarquardtOptimizerTest.java
+/MinpackTest.java
+/NonLinearConjugateGradientOptimizerTest.java
+/RandomCirclePointGenerator.java
+/RandomStraightLinePointGenerator.java
+/StatisticalReferenceDataset.java
+/StatisticalReferenceDatasetFactory.java
+/StraightLineProblem.java

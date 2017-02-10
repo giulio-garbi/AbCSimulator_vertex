@@ -1,0 +1,14 @@
+/AbstractUnivariateStatisticTest.java
+/AggregateSummaryStatisticsTest.java
+/DescriptiveStatisticsTest.java
+/ListUnivariateImpl.java
+/ListUnivariateImplTest.java
+/MixedListUnivariateImplTest.java
+/MultivariateSummaryStatisticsTest.java
+/StatisticalSummaryValuesTest.java
+/StorelessUnivariateStatisticAbstractTest.java
+/SummaryStatisticsTest.java
+/SynchronizedDescriptiveStatisticsTest.java
+/SynchronizedMultivariateSummaryStatisticsTest.java
+/SynchronizedSummaryStatisticsTest.java
+/UnivariateStatisticAbstractTest.java

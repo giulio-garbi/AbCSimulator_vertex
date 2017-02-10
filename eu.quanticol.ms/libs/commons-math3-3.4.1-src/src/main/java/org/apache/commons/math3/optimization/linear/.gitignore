@@ -1,0 +1,10 @@
+/AbstractLinearOptimizer.java
+/LinearConstraint.java
+/LinearObjectiveFunction.java
+/LinearOptimizer.java
+/NoFeasibleSolutionException.java
+/package-info.java
+/Relationship.java
+/SimplexSolver.java
+/SimplexTableau.java
+/UnboundedSolutionException.java

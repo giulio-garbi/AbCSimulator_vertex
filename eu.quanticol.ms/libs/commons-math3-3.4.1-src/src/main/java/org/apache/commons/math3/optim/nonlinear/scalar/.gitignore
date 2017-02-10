@@ -1,0 +1,11 @@
+/GoalType.java
+/GradientMultivariateOptimizer.java
+/LeastSquaresConverter.java
+/LineSearch.java
+/MultiStartMultivariateOptimizer.java
+/MultivariateFunctionMappingAdapter.java
+/MultivariateFunctionPenaltyAdapter.java
+/MultivariateOptimizer.java
+/ObjectiveFunction.java
+/ObjectiveFunctionGradient.java
+/package-info.java

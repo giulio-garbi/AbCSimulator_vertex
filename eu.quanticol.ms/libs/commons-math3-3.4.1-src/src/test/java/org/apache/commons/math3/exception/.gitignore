@@ -1,0 +1,9 @@
+/DimensionMismatchExceptionTest.java
+/MaxCountExceededExceptionTest.java
+/NonMonotonicSequenceExceptionTest.java
+/NotPositiveExceptionTest.java
+/NotStrictlyPositiveExceptionTest.java
+/NumberIsTooLargeExceptionTest.java
+/NumberIsTooSmallExceptionTest.java
+/OutOfRangeExceptionTest.java
+/TooManyEvaluationsExceptionTest.java

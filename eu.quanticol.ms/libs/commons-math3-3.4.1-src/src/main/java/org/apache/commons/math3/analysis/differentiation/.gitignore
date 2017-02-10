@@ -1,0 +1,15 @@
+/DerivativeStructure.java
+/DSCompiler.java
+/FiniteDifferencesDifferentiator.java
+/GradientFunction.java
+/JacobianFunction.java
+/MultivariateDifferentiableFunction.java
+/MultivariateDifferentiableVectorFunction.java
+/package-info.java
+/SparseGradient.java
+/UnivariateDifferentiableFunction.java
+/UnivariateDifferentiableMatrixFunction.java
+/UnivariateDifferentiableVectorFunction.java
+/UnivariateFunctionDifferentiator.java
+/UnivariateMatrixFunctionDifferentiator.java
+/UnivariateVectorFunctionDifferentiator.java

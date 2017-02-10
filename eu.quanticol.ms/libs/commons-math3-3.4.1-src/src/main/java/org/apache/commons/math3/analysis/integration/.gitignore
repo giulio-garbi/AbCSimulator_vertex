@@ -1,0 +1,9 @@
+/BaseAbstractUnivariateIntegrator.java
+/IterativeLegendreGaussIntegrator.java
+/LegendreGaussIntegrator.java
+/MidPointIntegrator.java
+/package-info.java
+/RombergIntegrator.java
+/SimpsonIntegrator.java
+/TrapezoidIntegrator.java
+/UnivariateIntegrator.java

@@ -1,0 +1,15 @@
+/BaseSecantSolverAbstractTest.java
+/BisectionSolverTest.java
+/BracketingNthOrderBrentSolverTest.java
+/BrentSolverTest.java
+/IllinoisSolverTest.java
+/LaguerreSolverTest.java
+/MullerSolver2Test.java
+/MullerSolverTest.java
+/NewtonRaphsonSolverTest.java
+/NewtonSolverTest.java
+/PegasusSolverTest.java
+/RegulaFalsiSolverTest.java
+/RiddersSolverTest.java
+/SecantSolverTest.java
+/UnivariateSolverUtilsTest.java
