@@ -49,10 +49,10 @@ public class TreeStructureFactory implements SimulationFactory<AbCSystem>{
 		int counter = 1;
 		LinkedList<ServerNode> level = new LinkedList<>();
 		level.add(root);
-		LinkedList<ServerNode> lvl=level;
 		for( int l=1 ; l<levels ; l++ ) {
+//			System.out.println(level);
 			LinkedList<ServerNode> nextLevel = new LinkedList<>();
-			for (ServerNode parent : lvl) {
+			for (ServerNode parent : level) {
 				for( int i=0 ; i<children ; i++ ) {
 					ServerNode n = new ServerNode(system, counter++);
 					n.setParent(parent);
@@ -61,21 +61,22 @@ public class TreeStructureFactory implements SimulationFactory<AbCSystem>{
 				}
 				
 			}
-			lvl=nextLevel;
-			for (ServerNode node : lvl) {
-				System.out.print(node.getIndex()+" ");	
-			}
-			System.out.println();
+			level=nextLevel;
+//			for (ServerNode node : level) {
+//				System.out.print(node.getIndex()+" ");	
+//			}
+//			System.out.println();
 		}
+//		System.out.println(level);
 
-		for (ServerNode parent : lvl) {
+		for (ServerNode parent : level) {
 			for( int i=0 ; i<agents ; i++ ) {
 				ComponentNode n = new ComponentNode(system, counter+i, parent);
-				System.out.print(parent.getIndex()+" ");
+//				System.out.print(parent.getIndex()+" ");
 				parent.addChild( n );
 			}
 		}
-		System.out.println();
+//		System.out.println();
 		system.setRoot( root );
 		system.setDataRate(dataRate);
 		system.setSendingRate(sendingRate);
