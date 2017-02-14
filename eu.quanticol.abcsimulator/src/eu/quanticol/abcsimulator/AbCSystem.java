@@ -231,7 +231,7 @@ public class AbCSystem implements ModelI {
 	}
 	
 	public boolean canSend() {
-		return (this.maxSenders!=-1)||(this.sender<this.maxSenders) ;
+		return (this.maxSenders==-1)||(this.sender<this.maxSenders) ;
 	}
 
 	public void setMaxNumberOfSenders(int maxSender) {
