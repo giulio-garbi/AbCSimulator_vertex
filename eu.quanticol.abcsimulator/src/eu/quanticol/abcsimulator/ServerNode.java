@@ -19,17 +19,17 @@ import org.cmg.ml.sam.sim.util.WeightedStructure;
  */
 public class ServerNode extends AbCNode {
 
-	private HashMap<Integer,AbCNode> children;
+	protected HashMap<Integer,AbCNode> children;
 	
-	private int current_index;
+	protected int current_index;
 	
-	private int next_index;
+	protected int next_index;
 	
-	private PriorityQueue<AbCMessage> waitingQueue;
+	protected PriorityQueue<AbCMessage> waitingQueue;
 	
-	private LinkedList<AbCMessage> inQueue;
+	protected LinkedList<AbCMessage> inQueue;
 	
-	private LinkedList<AbCMessage> outQueue;
+	protected LinkedList<AbCMessage> outQueue;
 	
 	public ServerNode(AbCSystem system, int id) {
 		super(system, id);
@@ -42,11 +42,12 @@ public class ServerNode extends AbCNode {
 
 	@Override
 	public void receive(AbCMessage message) {
-		if (next_index < message.getMessageIndex()) {
-			waitingQueue.add(message);
-		} else {
-			inQueue.add(message);
-		}
+//		if (next_index < message.getMessageIndex()) {
+//			waitingQueue.add(message);
+//		} else {
+//			inQueue.add(message);
+//		}
+		inQueue.add(message);
 	}
 
 	@Override
@@ -57,9 +58,36 @@ public class ServerNode extends AbCNode {
 		}
 		result = result.add(this.getSendingActivity());
 		result = result.add(this.getMessageHandlingActivity());
+		result = result.add(this.getHandlingWaitingMessagesActivity());
 		return result;
 	}
 	
+	private WeightedStructure<Activity> getHandlingWaitingMessagesActivity() {
+		if (!waitingQueue.isEmpty()) {
+			AbCMessage message = waitingQueue.peek();
+			return new WeightedElement<Activity>( 
+				getSystem().getMessageHandlingRate( this ) , 
+				new Activity() {
+
+					@Override
+					public String getName() {
+						return message.toString();
+					}
+
+					@Override
+					public boolean execute(RandomGenerator r) {
+						inQueue.remove(message);
+						handleDataPacket(message.getSource(), message.getMessageIndex());
+						return true;
+					}
+					
+				}
+			);
+		} else {
+			return null;
+		}
+	}
+
 	private WeightedStructure<Activity> getMessageHandlingActivity() {
 		if (!inQueue.isEmpty()) {
 			AbCMessage message = inQueue.peek();
@@ -77,7 +105,8 @@ public class ServerNode extends AbCNode {
 						inQueue.remove(message);
 						switch (message.getType()) {
 						case DATA:
-							handleDataPacket(message.getSource(), message.getMessageIndex());
+							//handleDataPacket(message.getSource(), message.getMessageIndex());
+							waitingQueue.add(message);
 							break;
 						case ID_REQUEST:
 							handleIndexRequest(message.getSource(), message.getRoute());	
@@ -107,7 +136,6 @@ public class ServerNode extends AbCNode {
 			}
 		}
 		this.next_index = index+1;
-		handleWaitingMessages();
 	}
 	
 	protected void handleIndexRequest( AbCNode from , LinkedList<Integer> route ) {
@@ -152,15 +180,15 @@ public class ServerNode extends AbCNode {
 		}
 	}
 	
-	private void handleWaitingMessages() {
-		if (!this.waitingQueue.isEmpty()) {
-			AbCMessage message = this.waitingQueue.peek();
-			if (message.getMessageIndex()==this.next_index) {
-				this.waitingQueue.poll();
-				this.inQueue.add(message);
-			}
-		}
-	}
+//	private void handleWaitingMessages() {
+//		if (!this.waitingQueue.isEmpty()) {
+//			AbCMessage message = this.waitingQueue.peek();
+//			if (message.getMessageIndex()==this.next_index) {
+//				this.waitingQueue.poll();
+//				this.inQueue.add(message);
+//			}
+//		}
+//	}
 
 	@Override
 	public LinkedList<Integer> getInputQueueSize( LinkedList<Integer> data ) {
