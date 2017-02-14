@@ -75,6 +75,7 @@ public class TreeStructureFactory implements SimulationFactory<AbCSystem>{
 				parent.addChild( n );
 			}
 		}
+		System.out.println();
 		system.setRoot( root );
 		system.setDataRate(dataRate);
 		system.setSendingRate(sendingRate);
