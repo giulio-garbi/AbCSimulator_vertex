@@ -62,7 +62,7 @@ public class RunTreeServerSimulation {
 		double simulationTime = 5000;
 		int samples = 10000;
 		int replications = 10;
-		TreeStructureFactory factory = new TreeStructureFactory(5,2,10,10, (x,y) -> 10.0 , x -> 100.0 , x -> 0.1 );
+		TreeStructureFactory factory = new TreeStructureFactory(5,2,10,160, (x,y) -> 10.0 , x -> 100.0 , x -> 0.1 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());

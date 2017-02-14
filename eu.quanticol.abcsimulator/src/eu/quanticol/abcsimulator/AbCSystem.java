@@ -89,7 +89,7 @@ public class AbCSystem implements ModelI {
 //			System.out.println("Size: "+deliveryStats.getN()+" Mean: "+getAverageDeliveryTime()+" Min: "+getMinDeliveryTime()+" Max: "+getMaxDeliveryTime());
 		} else {
 			deliveryTable.put(index, c);
-			System.out.println(deliveryTable);
+		//	System.out.println(deliveryTable);
 		}
 	}
 
