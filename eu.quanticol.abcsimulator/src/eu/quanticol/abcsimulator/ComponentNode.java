@@ -4,6 +4,7 @@
 package eu.quanticol.abcsimulator;
 
 import java.util.LinkedList;
+import java.util.PriorityQueue;
 
 import org.apache.commons.math3.random.RandomGenerator;
 import org.cmg.ml.sam.sim.Activity;
@@ -23,6 +24,7 @@ public class ComponentNode extends AbCNode {
 	
 	private LinkedList<AbCMessage> inQueue;
 	
+	protected PriorityQueue<AbCMessage> deliveryQueue;
 	
 	public ComponentNode(AbCSystem system, int id, AbCNode parent) {
 		super(system, id);

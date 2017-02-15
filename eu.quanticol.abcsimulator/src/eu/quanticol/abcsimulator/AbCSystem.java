@@ -41,6 +41,7 @@ public class AbCSystem implements ModelI {
 	private int sender;
 	
 	private int maxSenders = Integer.MAX_VALUE;
+	private int lastDelivered = -1;
 
 	public AbCSystem() {
 		this.time = 0.0;
@@ -61,7 +62,17 @@ public class AbCSystem implements ModelI {
 	@Override
 	public void timeStep(double dt) {
 		time += dt;
-//		System.out.println("Time: "+time+" Sender: "+sender+" Delivering: "+this.deliveryTable.size()+" Delivered: "+this.deliveryTime.size());
+		if (lastDelivered!=-1) {
+			double t0 = sendingTime.get(lastDelivered);
+			double delta = time-t0;
+			deliveryStats.addValue(delta);
+			deliveryTime.put(lastDelivered, delta);
+			deliveryTable.remove(lastDelivered);
+			sendingTime.remove(lastDelivered);
+			System.out.println(time+"> "+lastDelivered+"<-"+delta+" ["+deliveryTable.size()+"]");
+			lastDelivered = -1;
+		}
+		//		System.out.println("Time: "+time+" Sender: "+sender+" Delivering: "+this.deliveryTable.size()+" Delivered: "+this.deliveryTime.size());
 	}
 
 	public double getSendRate(AbCNode source, AbCNode target) {
@@ -79,12 +90,7 @@ public class AbCSystem implements ModelI {
 	public void dataReceived(ComponentNode n, int index) {
 		int c = deliveryTable.get(index)+1;
 		if (c == agents) {
-			double t0 = sendingTime.get(index);
-			double dt = time-t0;
-			deliveryStats.addValue(dt);
-			deliveryTime.put(index, dt);
-			deliveryTable.remove(index);
-			sendingTime.remove(index);
+			lastDelivered = index;
 //			System.out.println("Delivered: "+index);
 //			System.out.println("Size: "+deliveryStats.getN()+" Mean: "+getAverageDeliveryTime()+" Min: "+getMinDeliveryTime()+" Max: "+getMaxDeliveryTime());
 		} else {
@@ -96,6 +102,7 @@ public class AbCSystem implements ModelI {
 	public void dataSent(ComponentNode n, int index) {
 		deliveryTable.put(index, 1);
 		sendingTime.put(index, time);
+//		System.out.println(index+"->"+time);
 //		System.out.println("Sent: "+index);
 	}
 

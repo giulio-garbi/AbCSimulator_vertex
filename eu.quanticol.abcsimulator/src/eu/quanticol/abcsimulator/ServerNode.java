@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
+import javax.print.DocFlavor.INPUT_STREAM;
+
 import org.apache.commons.math3.random.RandomGenerator;
 import org.cmg.ml.sam.sim.Activity;
 import org.cmg.ml.sam.sim.util.ComposedWeightedStructure;
@@ -65,61 +67,73 @@ public class ServerNode extends AbCNode {
 	private WeightedStructure<Activity> getHandlingWaitingMessagesActivity() {
 		if (!waitingQueue.isEmpty()) {
 			AbCMessage message = waitingQueue.peek();
-			return new WeightedElement<Activity>( 
-				getSystem().getMessageHandlingRate( this ) , 
-				new Activity() {
+			if (message.getMessageIndex()==next_index) {
+				return new WeightedElement<Activity>( 
+						getSystem().getMessageHandlingRate( this ) , 
+						new Activity() {
 
-					@Override
-					public String getName() {
-						return message.toString();
-					}
+							@Override
+							public String getName() {
+								return message.toString();
+							}
 
-					@Override
-					public boolean execute(RandomGenerator r) {
-						waitingQueue.remove(message);
-						handleDataPacket(message.getSource(), message.getMessageIndex());
-						return true;
-					}
-					
-				}
-			);
-		} else {
-			return null;
-		}
+							@Override
+							public boolean execute(RandomGenerator r) {
+								waitingQueue.remove(message);
+								handleDataPacket(message.getSource(), message.getMessageIndex());
+								return true;
+							}
+							
+						}
+					);
+			}
+		} 
+		return null;
+	}
+	
+	private boolean nextIdReady() {
+		return (!waitingQueue.isEmpty())&&(waitingQueue.peek().getMessageIndex()==next_index);
 	}
 
 	private WeightedStructure<Activity> getMessageHandlingActivity() {
-		if (!inQueue.isEmpty()) {
+		if (!inQueue.isEmpty()&&!nextIdReady()) {
 			AbCMessage message = inQueue.peek();
-			return new WeightedElement<Activity>( 
-				getSystem().getMessageHandlingRate( this ) , 
-				new Activity() {
+				return new WeightedElement<Activity>( 
+						getSystem().getMessageHandlingRate( this ) , 
+						new Activity() {
 
-					@Override
-					public String getName() {
-						return message.toString();
-					}
+							@Override
+							public String getName() {
+								return message.toString();
+							}
 
-					@Override
-					public boolean execute(RandomGenerator r) {
-						inQueue.remove(message);
-						switch (message.getType()) {
-						case DATA:
-							//handleDataPacket(message.getSource(), message.getMessageIndex());
-							waitingQueue.add(message);
-							break;
-						case ID_REQUEST:
-							handleIndexRequest(message.getSource(), message.getRoute());	
-							break;
-						case ID_REPLY:
-							handleIndexReply(message.getMessageIndex(), message.getRoute());
-							break;
+							@Override
+							public boolean execute(RandomGenerator r) {
+								inQueue.remove(message);
+								switch (message.getType()) {
+								case DATA:
+									handleDataPacket(message.getSource(), message.getMessageIndex());
+//									if (message.getMessageIndex()==next_index) {
+//										handleDataPacket(message.getSource(), message.getMessageIndex());
+//									} else {
+//										waitingQueue.add(message);
+//									}
+//									if (waitingQueue.size()>4) {
+//										System.out.println("WQ SIZE AT: "+getIndex()+": "+waitingQueue.size());
+//									}
+									break;
+								case ID_REQUEST:
+									handleIndexRequest(message.getSource(), message.getRoute());	
+									break;
+								case ID_REPLY:
+									handleIndexReply(message.getMessageIndex(), message.getRoute());
+									break;
+								}
+								return true;
+							}
+							
 						}
-						return true;
-					}
-					
-				}
-			);
+					);
 		} else {
 			return null;
 		}
@@ -135,7 +149,11 @@ public class ServerNode extends AbCNode {
 				outQueue.add( new AbCMessage( this , MessageType.DATA , index , null , n  ) );				
 			}
 		}
+//		System.out.println(getIndex()+": "+this.next_index+"<->"+index);
 		this.next_index = index+1;
+		if (!waitingQueue.isEmpty()&&waitingQueue.peek().getMessageIndex()==next_index) {
+			inQueue.addFirst(waitingQueue.poll());
+		}
 	}
 	
 	protected void handleIndexRequest( AbCNode from , LinkedList<Integer> route ) {

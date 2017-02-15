@@ -1,9 +1,0 @@
-/AbstractDifferentiableOptimizer.java
-/AbstractLeastSquaresOptimizer.java
-/AbstractScalarDifferentiableOptimizer.java
-/ConjugateGradientFormula.java
-/GaussNewtonOptimizer.java
-/LevenbergMarquardtOptimizer.java
-/NonLinearConjugateGradientOptimizer.java
-/package-info.java
-/Preconditioner.java

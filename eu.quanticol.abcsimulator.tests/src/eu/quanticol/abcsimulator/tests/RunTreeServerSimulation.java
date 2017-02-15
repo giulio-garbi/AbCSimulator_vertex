@@ -59,10 +59,10 @@ public class RunTreeServerSimulation {
 				xyGraph.getPrimaryXAxis().setAutoScale(true);
 				xyGraph.getPrimaryYAxis().setAutoScale(true);
 		FileOutputStream fout=new FileOutputStream("mfile.txt");
-		double simulationTime = 5000;
-		int samples = 10000;
-		int replications = 10;
-		TreeStructureFactory factory = new TreeStructureFactory(5,2,10,160, (x,y) -> 10.0 , x -> 100.0 , x -> 0.1 );
+		double simulationTime = 50000;
+		int samples = 100;
+		int replications = 1;
+		TreeStructureFactory factory = new TreeStructureFactory(5,2,10,5, (x,y) -> 10.0 , x -> 1000.0 , x -> 0.01 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());
@@ -85,7 +85,8 @@ public class RunTreeServerSimulation {
 		LinkedList<SimulationTimeSeries> series=new LinkedList<>();
 		series.addAll(averageDeliveryTime.getSimulationTimeSeries(replications));
 		series.addAll(maxDeliveryTime.getSimulationTimeSeries(replications));
-		series.addAll(minDeliveryTime.getSimulationTimeSeries(replications));
+//		series.addAll(minDeliveryTime.getSimulationTimeSeries(replications));
+		
 	//	series.addAll(numberOfDeliveredMessages.getSimulationTimeSeries(replications));
 	//	series.addAll(averageWaitingSize.getSimulationTimeSeries(replications));
 		LinkedList<Trace> traces=new LinkedList<>();
