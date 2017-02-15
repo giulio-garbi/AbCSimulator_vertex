@@ -76,7 +76,7 @@ public class ServerNode extends AbCNode {
 
 					@Override
 					public boolean execute(RandomGenerator r) {
-						inQueue.remove(message);
+						waitingQueue.remove(message);
 						handleDataPacket(message.getSource(), message.getMessageIndex());
 						return true;
 					}
