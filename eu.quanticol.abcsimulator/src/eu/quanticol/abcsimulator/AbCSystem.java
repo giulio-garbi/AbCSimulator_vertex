@@ -28,6 +28,8 @@ public class AbCSystem implements ModelI {
 	protected Function<AbCNode, Double> dataRate;
 
 	SummaryStatistics deliveryStats = new SummaryStatistics();
+	SummaryStatistics waitingIdStats = new SummaryStatistics();
+	SummaryStatistics totalSendingTime = new SummaryStatistics();
 	
 	protected double time;
 	
@@ -41,7 +43,6 @@ public class AbCSystem implements ModelI {
 	private int sender;
 	
 	private int maxSenders = Integer.MAX_VALUE;
-	private int lastDelivered = -1;
 
 	public AbCSystem() {
 		this.time = 0.0;
@@ -62,16 +63,6 @@ public class AbCSystem implements ModelI {
 	@Override
 	public void timeStep(double dt) {
 		time += dt;
-		if (lastDelivered!=-1) {
-			double t0 = sendingTime.get(lastDelivered);
-			double delta = time-t0;
-			deliveryStats.addValue(delta);
-			deliveryTime.put(lastDelivered, delta);
-			deliveryTable.remove(lastDelivered);
-			sendingTime.remove(lastDelivered);
-			System.out.println(time+"> "+lastDelivered+"<-"+delta+" ["+deliveryTable.size()+"]");
-			lastDelivered = -1;
-		}
 		//		System.out.println("Time: "+time+" Sender: "+sender+" Delivering: "+this.deliveryTable.size()+" Delivered: "+this.deliveryTime.size());
 	}
 
@@ -87,25 +78,35 @@ public class AbCSystem implements ModelI {
 		return dataRate.apply(node);
 	}
 	
-	public void dataReceived(ComponentNode n, int index) {
+	public void dataReceived(ComponentNode n, int index, double time) {
 		int c = deliveryTable.get(index)+1;
 		if (c == agents) {
-			lastDelivered = index;
-//			System.out.println("Delivered: "+index);
-//			System.out.println("Size: "+deliveryStats.getN()+" Mean: "+getAverageDeliveryTime()+" Min: "+getMinDeliveryTime()+" Max: "+getMaxDeliveryTime());
+			double t0 = sendingTime.get(index);
+			double delta = time-t0;
+			deliveryStats.addValue(delta);
+			deliveryTime.put(index, delta);
+			deliveryTable.remove(index);
+			sendingTime.remove(index);
+//				System.out.println(time+"> "+lastDelivered+"<-"+delta+" ["+deliveryTable.size()+"]");
 		} else {
 			deliveryTable.put(index, c);
 		//	System.out.println(deliveryTable);
 		}
 	}
 
-	public void dataSent(ComponentNode n, int index) {
+	public void dataSent(ComponentNode n, int index, double time) {
 		deliveryTable.put(index, 1);
 		sendingTime.put(index, time);
 //		System.out.println(index+"->"+time);
 //		System.out.println("Sent: "+index);
 	}
+	
+	public void registerWaitingTime( double time ) {
+		waitingIdStats.addValue(time);
+	}
 
+	
+	
 	public LinkedList<Integer> getInputQueueSize() {
 		return root.getInputQueueSize( new LinkedList<Integer>() );
 	}
@@ -271,5 +272,21 @@ public class AbCSystem implements ModelI {
 
 	public double getDeliveredMessages() {
 		return deliveryStats.getN();
+	}
+	
+	public double getAverageWaitingIdTime() {
+		return waitingIdStats.getMean();
+	}
+
+	public double getMaxWaitingIdTime() {
+		return waitingIdStats.getMax();
+	}
+
+	public double getMinWaitingIdTime() {
+		return waitingIdStats.getMin();
+	}
+
+	public double getSDWaitingIdTime() {
+		return waitingIdStats.getStandardDeviation();
 	}
 }

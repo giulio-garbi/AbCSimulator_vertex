@@ -22,6 +22,6 @@ public interface Activity {
 	
 	public String getName();
 
-	public boolean execute(RandomGenerator r);
+	public boolean execute(RandomGenerator r, double starting_time, double duration);
 
 }

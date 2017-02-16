@@ -115,7 +115,7 @@ public class AbCCluster extends AbCNode {
 							}
 
 							@Override
-							public boolean execute(RandomGenerator r) {
+							public boolean execute(RandomGenerator r, double starting_time, double duration) {
 								input.remove(message);
 								switch (message.getType()) {
 								case DATA:
@@ -166,7 +166,7 @@ public class AbCCluster extends AbCNode {
 							}
 
 							@Override
-							public boolean execute(RandomGenerator r) {
+							public boolean execute(RandomGenerator r, double starting_time, double duration) {
 								outputQueue.remove(message);
 								message.getTarget().receive(message);
 								return true;

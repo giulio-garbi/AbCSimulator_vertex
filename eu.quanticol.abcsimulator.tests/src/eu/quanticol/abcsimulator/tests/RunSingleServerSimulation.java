@@ -63,8 +63,8 @@ public class RunSingleServerSimulation {
 		FileOutputStream fout=new FileOutputStream("mfile.txt");
 		double simulationTime = 50000;
 		int samples = 100;
-		int replications = 1;
-		SingleServerFactory factory = new SingleServerFactory(160,160, (x,y) -> 10.0 , x -> 100.0 , x -> 0.001 );
+		int replications = 10;
+		SingleServerFactory factory = new SingleServerFactory(160,160, (x,y) -> 10.0 , x -> 1000.0 , x -> 0.01 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);		
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());
@@ -82,7 +82,7 @@ public class RunSingleServerSimulation {
 		series.addAll(averageDeliveryTime.getSimulationTimeSeries(replications));
 		series.addAll(maxDeliveryTime.getSimulationTimeSeries(replications));
 		series.addAll(minDeliveryTime.getSimulationTimeSeries(replications));
-		//series.addAll(numberOfDeliveredMessages.getSimulationTimeSeries(replications));
+		series.addAll(numberOfDeliveredMessages.getSimulationTimeSeries(replications));
 		//series.addAll(averageWaitingSize.getSimulationTimeSeries(replications));
 		LinkedList<Trace> traces=new LinkedList<>();
 		LinkedList<SimulationTrace> simtraces=new LinkedList<>();

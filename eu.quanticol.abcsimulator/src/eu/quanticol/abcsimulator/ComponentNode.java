@@ -3,6 +3,7 @@
  */
 package eu.quanticol.abcsimulator;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
@@ -17,6 +18,8 @@ import org.cmg.ml.sam.sim.util.WeightedStructure;
  *
  */
 public class ComponentNode extends AbCNode {
+	
+	private int GAP_SIZE = 1;
 
 	private boolean isSending = false;
 	
@@ -25,6 +28,12 @@ public class ComponentNode extends AbCNode {
 	private LinkedList<AbCMessage> inQueue;
 	
 	protected PriorityQueue<AbCMessage> deliveryQueue;
+	
+	protected HashSet<Integer> myIndexes = new HashSet<>();
+	
+	private int lastReceived = -1;
+	
+	private double startSendingTime;
 	
 	public ComponentNode(AbCSystem system, int id, AbCNode parent) {
 		super(system, id);
@@ -51,27 +60,45 @@ public class ComponentNode extends AbCNode {
 	}
 
 	private WeightedStructure<Activity> getSendDataActivity() {
-		return new WeightedElement<Activity>( 
-				getSystem().getSendRate( this , parent ), 
-				new Activity() {
+		if (this.lastReceived >= this.nextId-GAP_SIZE) {
+			return new WeightedElement<Activity>( 
+					getSystem().getSendRate( this , parent ), 
+					new Activity() {
 
-					@Override
-					public String getName() {
-						return this.toString()+"!";
-					}
+						@Override
+						public String getName() {
+							return this.toString()+"!";
+						}
 
-					@Override
-					public boolean execute(RandomGenerator r) {
-						getSystem().sendingDone();
-						getSystem().dataSent( ComponentNode.this, ComponentNode.this.nextId);
-						parent.receive( new AbCMessage(ComponentNode.this, MessageType.DATA, ComponentNode.this.nextId, null, parent));
-						isSending = false;
-						nextId = -1;
-						return true;
+						@Override
+						public boolean execute(RandomGenerator r, double starting_time, double duration) {
+							getSystem().sendingDone();
+							getSystem().dataSent( ComponentNode.this, ComponentNode.this.nextId,startSendingTime);
+							parent.receive( new AbCMessage(ComponentNode.this, MessageType.DATA, ComponentNode.this.nextId, null, parent));
+							isSending = false;
+							myIndexes.add(nextId);
+							updateLastReceivedIndex( lastReceived );
+							nextId = -1;
+							return true;
+						}
+						
 					}
-					
-				}
-			);
+				);
+		} else {
+			return null;
+		}
+	}
+
+	protected void updateLastReceivedIndex( int newIndex ) {
+		int size = myIndexes.size();
+		for(int idx = 0; idx<size;idx++) {
+			if (!myIndexes.contains(newIndex+idx+1)) {
+				lastReceived = newIndex+idx;
+				return ;
+			}
+			myIndexes.remove(newIndex+idx+1);
+		}
+		lastReceived = newIndex+size;
 	}
 
 	private WeightedStructure<Activity> getSendRequestActivity() {
@@ -85,8 +112,9 @@ public class ComponentNode extends AbCNode {
 					}
 
 					@Override
-					public boolean execute(RandomGenerator r) {
+					public boolean execute(RandomGenerator r, double starting_time, double duration) {
 						getSystem().addSender();
+						startSendingTime = starting_time;
 						ComponentNode.this.isSending = true;
 						ComponentNode.this.nextId = -1;
 						LinkedList<Integer> route = new LinkedList<>();
@@ -114,13 +142,21 @@ public class ComponentNode extends AbCNode {
 					}
 
 					@Override
-					public boolean execute(RandomGenerator r) {
+					public boolean execute(RandomGenerator r, double starting_time, double duration) {
 						inQueue.remove(message);
 						if ((message.getType()==MessageType.ID_REPLY)&&isSending) {
 							ComponentNode.this.nextId = message.getMessageIndex();
+							getSystem().registerWaitingTime((starting_time+duration)-startSendingTime);
 						}
 						if (message.getType()==MessageType.DATA) {
-							getSystem().dataReceived( ComponentNode.this , message.getMessageIndex() );
+							if (lastReceived != message.getMessageIndex()-1) {
+								System.out.println("Out of Order: expected "+(lastReceived+1)+" is "+message.getMessageIndex());
+							}
+							if (lastReceived >= message.getMessageIndex()) {
+								System.out.println("Duplicated data: expected "+(lastReceived+1)+" is "+message.getMessageIndex());
+							}
+							updateLastReceivedIndex( message.getMessageIndex() );							
+							getSystem().dataReceived( ComponentNode.this , message.getMessageIndex(), starting_time+duration );
 						}
 						return true;
 					}

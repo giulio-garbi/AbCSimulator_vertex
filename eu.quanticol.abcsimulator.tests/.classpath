@@ -5,6 +5,5 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/eu.quanticol.abcsimulator"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/eu.quanticol.ms"/>
-	<classpathentry kind="lib" path="/Users/Yehia/Downloads/jface-3.0m7.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
