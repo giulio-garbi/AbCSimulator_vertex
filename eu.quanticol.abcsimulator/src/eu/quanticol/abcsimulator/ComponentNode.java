@@ -35,6 +35,10 @@ public class ComponentNode extends AbCNode {
 	
 	private double startSendingTime;
 	
+	private double previousMessageTime = -1;
+
+	protected AbCNode parent;
+	
 	public ComponentNode(AbCSystem system, int id, AbCNode parent) {
 		super(system, id);
 		setParent( parent );
@@ -157,6 +161,10 @@ public class ComponentNode extends AbCNode {
 							}
 							updateLastReceivedIndex( message.getMessageIndex() );							
 							getSystem().dataReceived( ComponentNode.this , message.getMessageIndex(), starting_time+duration );
+							if (previousMessageTime>=0) {
+								getSystem().registerMessageInterval(starting_time+duration-previousMessageTime);
+							} 
+							previousMessageTime = starting_time+duration;
 						}
 						return true;
 					}
@@ -181,5 +189,10 @@ public class ComponentNode extends AbCNode {
 	public LinkedList<Integer> getOutputQueueSize(LinkedList<Integer> data) {
 		return data;
 	}
+
+	protected void setParent( AbCNode parent ) {
+		this.parent = parent;
+	}
+	
 
 }

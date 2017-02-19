@@ -30,6 +30,9 @@ public class AbCSystem implements ModelI {
 	SummaryStatistics deliveryStats = new SummaryStatistics();
 	SummaryStatistics waitingIdStats = new SummaryStatistics();
 	SummaryStatistics totalSendingTime = new SummaryStatistics();
+	SummaryStatistics messageInterval = new SummaryStatistics();
+	
+	
 	
 	protected double time;
 	
@@ -288,5 +291,13 @@ public class AbCSystem implements ModelI {
 
 	public double getSDWaitingIdTime() {
 		return waitingIdStats.getStandardDeviation();
+	}
+	
+	public void registerMessageInterval( double time ) {
+		messageInterval.addValue(time);
+	}
+	
+	public SummaryStatistics getMessageIntevalStatistics() {
+		return messageInterval;
 	}
 }

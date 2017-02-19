@@ -21,6 +21,9 @@ import org.cmg.ml.sam.sim.util.WeightedStructure;
  */
 public class ServerNode extends AbCNode {
 
+
+	protected AbCNode parent;
+	
 	protected HashMap<Integer,AbCNode> children;
 	
 	protected int current_index;
@@ -247,6 +250,9 @@ public class ServerNode extends AbCNode {
 		this.children.put(n.getIndex(), n);
 	}
 
+	protected void setParent( AbCNode parent ) {
+		this.parent = parent;
+	}
 	
 	public String getInfo() {
 		return "WAITING: "+waitingQueue+"\nINPUT: "+inQueue+"\nOUTPUT: "+outQueue;
