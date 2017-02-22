@@ -95,7 +95,7 @@ public class SimulationEnvironment<S extends ModelI> {
 			sampling_function.sample(time, model);
 		}
 		while (((monitor == null)||(!monitor.isCancelled()))&&(time < deadline)) {
-			double dt = doAStep();
+			double dt = doAStep(time);
 			if (dt <= 0) {
 				if (sampling_function != null) {
 					sampling_function.end(time);
@@ -121,7 +121,7 @@ public class SimulationEnvironment<S extends ModelI> {
 		return doSimulate(null,deadline);
 	}
 
-	private double doAStep() {
+	private double doAStep(double time) {
 		WeightedStructure<Activity> agents = this.model.getActivities( random );
 		double totalRate = agents.getTotalWeight();
 		if (totalRate == 0.0) {
@@ -133,7 +133,7 @@ public class SimulationEnvironment<S extends ModelI> {
 		if (wa == null) {
 			return 0.0;
 		}
-		wa.getElement().execute(random);
+		wa.getElement().execute(random, time, dt);
 		return dt;
 	}
 

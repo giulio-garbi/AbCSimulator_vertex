@@ -33,7 +33,7 @@ public class GetActivity implements Activity {
 	}
 
 	@Override
-	public boolean execute(RandomGenerator r) {
+	public boolean execute(RandomGenerator r, double starting_time, double duration) {
 		if (node.occurrences <= 0) {
 			return false;
 		}

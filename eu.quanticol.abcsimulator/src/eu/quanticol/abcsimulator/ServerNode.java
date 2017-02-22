@@ -21,6 +21,9 @@ import org.cmg.ml.sam.sim.util.WeightedStructure;
  */
 public class ServerNode extends AbCNode {
 
+
+	protected AbCNode parent;
+	
 	protected HashMap<Integer,AbCNode> children;
 	
 	protected int current_index;
@@ -78,7 +81,7 @@ public class ServerNode extends AbCNode {
 							}
 
 							@Override
-							public boolean execute(RandomGenerator r) {
+							public boolean execute(RandomGenerator r, double starting_time, double duration) {
 								waitingQueue.remove(message);
 								handleDataPacket(message.getSource(), message.getMessageIndex());
 								return true;
@@ -108,11 +111,11 @@ public class ServerNode extends AbCNode {
 							}
 
 							@Override
-							public boolean execute(RandomGenerator r) {
+							public boolean execute(RandomGenerator r, double starting_time, double duration) {
 								inQueue.remove(message);
 								switch (message.getType()) {
 								case DATA:
-									handleDataPacket(message.getSource(), message.getMessageIndex());
+//									handleDataPacket(message.getSource(), message.getMessageIndex());
 //									if (message.getMessageIndex()==next_index) {
 //										handleDataPacket(message.getSource(), message.getMessageIndex());
 //									} else {
@@ -121,6 +124,10 @@ public class ServerNode extends AbCNode {
 //									if (waitingQueue.size()>4) {
 //										System.out.println("WQ SIZE AT: "+getIndex()+": "+waitingQueue.size());
 //									}
+									if ((parent != null)&&(message.getSource() != parent)) {
+										outQueue.add( new AbCMessage( ServerNode.this , MessageType.DATA , message.getMessageIndex() , null , parent  ) );
+									}									
+									waitingQueue.add(message);
 									break;
 								case ID_REQUEST:
 									handleIndexRequest(message.getSource(), message.getRoute());	
@@ -141,9 +148,12 @@ public class ServerNode extends AbCNode {
 	
 	
 	protected void handleDataPacket( AbCNode from , int index ) {
-		if ((parent != null)&&(from != parent)) {
-			outQueue.add( new AbCMessage( this , MessageType.DATA , index , null , parent  ) );
-		}
+//		if (this.next_index != index) {
+//			System.out.println("SERVER: "+this.next_index+"->"+index);
+//		}
+//		if ((parent != null)&&(from != parent)) {
+//			outQueue.add( new AbCMessage( this , MessageType.DATA , index , null , parent  ) );
+//		}
 		for (AbCNode n : children.values()) {
 			if (from != n) {
 				outQueue.add( new AbCMessage( this , MessageType.DATA , index , null , n  ) );				
@@ -151,9 +161,9 @@ public class ServerNode extends AbCNode {
 		}
 //		System.out.println(getIndex()+": "+this.next_index+"<->"+index);
 		this.next_index = index+1;
-		if (!waitingQueue.isEmpty()&&waitingQueue.peek().getMessageIndex()==next_index) {
-			inQueue.addFirst(waitingQueue.poll());
-		}
+//		if (!waitingQueue.isEmpty()&&waitingQueue.peek().getMessageIndex()==next_index) {
+//			inQueue.addFirst(waitingQueue.poll());
+//		}
 	}
 	
 	protected void handleIndexRequest( AbCNode from , LinkedList<Integer> route ) {
@@ -185,8 +195,9 @@ public class ServerNode extends AbCNode {
 						}
 
 						@Override
-						public boolean execute(RandomGenerator r) {
+						public boolean execute(RandomGenerator r, double starting_time, double duration) {
 							outQueue.remove(message);
+//							System.out.println("SENDING "+message.getMessageIndex());
 							message.getTarget().receive(message);
 							return true;
 						}
@@ -239,6 +250,9 @@ public class ServerNode extends AbCNode {
 		this.children.put(n.getIndex(), n);
 	}
 
+	protected void setParent( AbCNode parent ) {
+		this.parent = parent;
+	}
 	
 	public String getInfo() {
 		return "WAITING: "+waitingQueue+"\nINPUT: "+inQueue+"\nOUTPUT: "+outQueue;

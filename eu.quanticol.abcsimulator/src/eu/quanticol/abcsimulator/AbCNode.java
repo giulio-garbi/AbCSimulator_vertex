@@ -16,7 +16,6 @@ import org.cmg.ml.sam.sim.util.WeightedStructure;
  */
 public abstract class AbCNode {
 	
-	protected AbCNode parent;
 	private AbCSystem system;
 	
 	private int id;
@@ -57,10 +56,6 @@ public abstract class AbCNode {
 		return id;
 	}
 	
-	protected void setParent( AbCNode parent ) {
-		this.parent = parent;
-	}
-
 	public abstract LinkedList<Integer> getInputQueueSize(LinkedList<Integer> linkedList);
 
 	public abstract LinkedList<Integer> getWaitingQueueSize(LinkedList<Integer> linkedList);

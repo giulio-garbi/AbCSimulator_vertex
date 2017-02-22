@@ -45,7 +45,7 @@ public abstract class PopulationTransition<S,T extends PopulationState<S>> imple
 	public abstract String getInfo();
 
 	@Override
-	public boolean execute(RandomGenerator r) {
+	public boolean execute(RandomGenerator r, double starting_time, double duration) {
 		PopulationDrift<S> drift = transitionDriftFunction.apply(r);
 		model.apply(drift,postTransitionAction);
 		return false;

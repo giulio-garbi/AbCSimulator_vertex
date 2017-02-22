@@ -39,10 +39,10 @@ public class SequenceOfActivities implements Activity {
 	}
 
 	@Override
-	public boolean execute(RandomGenerator r) {
+	public boolean execute(RandomGenerator r, double starting_time, double duration) {
 		boolean result = true;
 		for (Activity activity : activities) {
-			result = activity.execute(r);
+			result = activity.execute(r, starting_time, duration);
 			if (!result) {
 				return result;
 			}

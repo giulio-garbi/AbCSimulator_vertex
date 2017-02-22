@@ -31,6 +31,7 @@ import eu.quanticol.abcsimulator.MaxMessageInterval;
 import eu.quanticol.abcsimulator.MinDeliveryTime;
 import eu.quanticol.abcsimulator.MinMessageInterval;
 import eu.quanticol.abcsimulator.NumberOfDeliveredMessages;
+import eu.quanticol.abcsimulator.RingStructureFactory;
 import eu.quanticol.abcsimulator.SingleServerFactory;
 import eu.quanticol.abcsimulator.TravellingMessages;
 import eu.quanticol.abcsimulator.TreeStructureFactory;
@@ -39,7 +40,7 @@ import eu.quanticol.abcsimulator.TreeStructureFactory;
  * @author loreti
  *
  */
-public class RunTreeServerSimulation {
+public class RunRingServerSimulation {
 
 	public static void main(String[] argv) throws FileNotFoundException {
 		final Shell shell = new Shell();
@@ -62,10 +63,10 @@ public class RunTreeServerSimulation {
 				xyGraph.getPrimaryXAxis().setAutoScale(true);
 				xyGraph.getPrimaryYAxis().setAutoScale(true);
 		FileOutputStream fout=new FileOutputStream("mfile.txt");
-		double simulationTime = 1000;
+		double simulationTime = 10000;
 		int samples = 100;
 		int replications = 10;
-		TreeStructureFactory factory = new TreeStructureFactory(9,2,2,1, (x,y) -> 15.0 , x -> 1000.0 , x -> 0.03 );
+		RingStructureFactory factory = new RingStructureFactory(2,512/2,-1, (x,y) -> 15.0 , x -> 1000.0 , x -> 0.03 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());
@@ -89,12 +90,12 @@ public class RunTreeServerSimulation {
 		env.simulate(replications,simulationTime);
 		averageDeliveryTime.printTimeSeries(new PrintStream(fout));
 		LinkedList<SimulationTimeSeries> series=new LinkedList<>();
-//		series.addAll(averageDeliveryTime.getSimulationTimeSeries(replications));
-//		series.addAll(maxDeliveryTime.getSimulationTimeSeries(replications));
-//		series.addAll(minDeliveryTime.getSimulationTimeSeries(replications));
-		series.addAll(averageTimeInterval.getSimulationTimeSeries(replications));
-		series.addAll(maxTimeInterval.getSimulationTimeSeries(replications));
-		series.addAll(minTimeInterval.getSimulationTimeSeries(replications));
+		series.addAll(averageDeliveryTime.getSimulationTimeSeries(replications));
+		series.addAll(maxDeliveryTime.getSimulationTimeSeries(replications));
+		series.addAll(minDeliveryTime.getSimulationTimeSeries(replications));
+//		series.addAll(averageTimeInterval.getSimulationTimeSeries(replications));
+//		series.addAll(maxTimeInterval.getSimulationTimeSeries(replications));
+//		series.addAll(minTimeInterval.getSimulationTimeSeries(replications));
 		
 //		series.addAll(numberOfDeliveredMessages.getSimulationTimeSeries(replications));
 //		series.addAll(averageWaitingSize.getSimulationTimeSeries(replications));
