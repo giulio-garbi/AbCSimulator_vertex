@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.apache.commons.math3.random.RandomGenerator;
+import org.cmg.ml.sam.sim.RandomGeneratorRegistry;
 import org.cmg.ml.sam.sim.SimulationFactory;
 import org.cmg.ml.sam.sim.sampling.Measure;
 
@@ -46,12 +48,17 @@ public class RingStructureFactory implements SimulationFactory<AbCSystem>{
 		SharedCounter counter = new SharedCounter();
 		ArrayList<RingNode> ringElements = new ArrayList<>();
 		int idCounter = 0;
+		
+		RandomGenerator r = RandomGeneratorRegistry.getInstance().get();
+		
+		ArrayList<ComponentNode> nodes = new ArrayList<>();		
 		for( int e=0 ; e<elements ; e++ ) {
 			RingNode n = new RingNode(system, idCounter++, counter, ringElements);
 			ringElements.add(n);
 			for( int i=0 ; i<agents; i++) {
-				ComponentNode cn = new ComponentNode(system, idCounter++, n);
+				ComponentNode cn = new ComponentNode(system, idCounter++, n,maxSender<0);
 				n.addChild(cn);
+				nodes.add(cn);
 			}
 		}
 		for( int e=0 ; e<elements ; e++ ) {
@@ -60,12 +67,23 @@ public class RingStructureFactory implements SimulationFactory<AbCSystem>{
 			n1.setNext(n2);
 		}
 
+		if (maxSender>0) {
+			int senderCounter = 0;
+			while( senderCounter < maxSender ) {
+				int id = r.nextInt(nodes.size());
+				ComponentNode n = nodes.get(id);
+				if (!n.isASender()) {
+					n.setSender( true );
+					senderCounter++;
+				}
+			}
+		}
+
 		system.setRoot( ringElements.get(0) );
 		system.setDataRate(dataRate);
 		system.setSendingRate(sendingRate);
 		system.setHandlingRate(handlingRate);
 		system.setAgents(elements*agents);
-		system.setMaxNumberOfSenders( maxSender );
 		return system;
 	}
 

@@ -3,10 +3,13 @@
  */
 package eu.quanticol.abcsimulator;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.apache.commons.math3.random.RandomGenerator;
+import org.cmg.ml.sam.sim.RandomGeneratorRegistry;
 import org.cmg.ml.sam.sim.SimulationFactory;
 import org.cmg.ml.sam.sim.sampling.Measure;
 
@@ -69,20 +72,36 @@ public class TreeStructureFactory implements SimulationFactory<AbCSystem>{
 		}
 //		System.out.println(level);
 
+		RandomGenerator r = RandomGeneratorRegistry.getInstance().get();
+		
+		ArrayList<ComponentNode> nodes = new ArrayList<>();		
 		for (ServerNode parent : level) {
 			for( int i=0 ; i<agents ; i++ ) {
-				ComponentNode n = new ComponentNode(system, counter+i, parent);
+				ComponentNode n = new ComponentNode(system, counter+i, parent, (maxSender<0));
+				nodes.add(n);
 //				System.out.print(parent.getIndex()+" ");
 				parent.addChild( n );
 			}
 		}
-//		System.out.println();
+
+		if (maxSender>0) {
+			int senderCounter = 0;
+			while( senderCounter < maxSender ) {
+				int id = r.nextInt(nodes.size());
+				ComponentNode n = nodes.get(id);
+				if (!n.isASender()) {
+					n.setSender( true );
+					senderCounter++;
+				}
+			}
+		}
+		
 		system.setRoot( root );
 		system.setDataRate(dataRate);
 		system.setSendingRate(sendingRate);
 		system.setHandlingRate(handlingRate);
 		system.setAgents(level.size()*agents);
-		system.setMaxNumberOfSenders( maxSender );
+//		system.setMaxNumberOfSenders( maxSender );
 		return system;
 	}
 

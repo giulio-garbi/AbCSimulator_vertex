@@ -43,9 +43,9 @@ public class AbCSystem implements ModelI {
 	protected final HashMap<Integer,Integer> deliveryTable;
 	
 	protected final HashMap<Integer,Double> deliveryTime;
-	private int sender;
-	
-	private int maxSenders = Integer.MAX_VALUE;
+//	private int sender;
+//	
+//	private int maxSenders = Integer.MAX_VALUE;
 
 	public AbCSystem() {
 		this.time = 0.0;
@@ -233,21 +233,21 @@ public class AbCSystem implements ModelI {
 		return deliveryTime;
 	}
 	
-	public void addSender() {
-		this.sender++;
-	}
-
-	public void sendingDone() {
-		this.sender--;
-	}
-	
-	public boolean canSend() {
-		return (this.maxSenders==-1)||(this.sender<this.maxSenders) ;
-	}
-
-	public void setMaxNumberOfSenders(int maxSender) {
-		this.maxSenders = maxSender;
-	}
+//	public void addSender() {
+//		this.sender++;
+//	}
+//
+//	public void sendingDone() {
+//		this.sender--;
+//	}
+//	
+//	public boolean canSend() {
+//		return (this.maxSenders==-1)||(this.sender<this.maxSenders) ;
+//	}
+//
+//	public void setMaxNumberOfSenders(int maxSender) {
+//		this.maxSenders = maxSender;
+//	}
 
 	public double averageDeliveryTime() {
 		double tot = 0.0;

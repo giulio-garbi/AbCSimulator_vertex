@@ -63,10 +63,10 @@ public class RunRingServerSimulation {
 				xyGraph.getPrimaryXAxis().setAutoScale(true);
 				xyGraph.getPrimaryYAxis().setAutoScale(true);
 		FileOutputStream fout=new FileOutputStream("mfile.txt");
-		double simulationTime = 10000;
+		double simulationTime = 2000;
 		int samples = 100;
 		int replications = 10;
-		RingStructureFactory factory = new RingStructureFactory(2,512/2,-1, (x,y) -> 15.0 , x -> 1000.0 , x -> 0.03 );
+		RingStructureFactory factory = new RingStructureFactory(128,1,-1, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());
@@ -93,9 +93,9 @@ public class RunRingServerSimulation {
 		series.addAll(averageDeliveryTime.getSimulationTimeSeries(replications));
 		series.addAll(maxDeliveryTime.getSimulationTimeSeries(replications));
 		series.addAll(minDeliveryTime.getSimulationTimeSeries(replications));
-//		series.addAll(averageTimeInterval.getSimulationTimeSeries(replications));
-//		series.addAll(maxTimeInterval.getSimulationTimeSeries(replications));
-//		series.addAll(minTimeInterval.getSimulationTimeSeries(replications));
+		series.addAll(averageTimeInterval.getSimulationTimeSeries(replications));
+		series.addAll(maxTimeInterval.getSimulationTimeSeries(replications));
+		series.addAll(minTimeInterval.getSimulationTimeSeries(replications));
 		
 //		series.addAll(numberOfDeliveredMessages.getSimulationTimeSeries(replications));
 //		series.addAll(averageWaitingSize.getSimulationTimeSeries(replications));

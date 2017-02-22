@@ -36,13 +36,21 @@ public class ComponentNode extends AbCNode {
 	private double startSendingTime;
 	
 	private double previousMessageTime = -1;
+	
+	private boolean isASender;
 
 	protected AbCNode parent;
 	
-	public ComponentNode(AbCSystem system, int id, AbCNode parent) {
+	public ComponentNode(AbCSystem system, int id, AbCNode parent,boolean isASender) {
 		super(system, id);
 		setParent( parent );
 		inQueue = new LinkedList<>();
+		this.isASender = isASender;
+		this.deliveryQueue = new PriorityQueue<AbCMessage>(10,new MessageComparator());
+	}
+
+	public ComponentNode(AbCSystem system, int id, AbCNode parent) {
+		this(system,id,parent,false);
 	}
 
 	@Override
@@ -54,11 +62,14 @@ public class ComponentNode extends AbCNode {
 	public WeightedStructure<Activity> getActivities(RandomGenerator r) {
 		WeightedStructure<Activity> result = new ComposedWeightedStructure<>();
 		result = result.add(getReceivingActivity());
-		if ((!isSending)&&(getSystem().canSend())) {
+		if ((!isSending)&&(isASender)) {
 			result = result.add( getSendRequestActivity() );
 		}
 		if ((isSending)&&(nextId!=-1)) {
 			result = result.add( getSendDataActivity() );
+		}
+		if (!deliveryQueue.isEmpty()&&(deliveryQueue.peek().getMessageIndex()==lastReceived+1)) {
+			result = result.add( getHandlingWaitingMessageActivity() );
 		}
 		return result;
 	}
@@ -76,7 +87,6 @@ public class ComponentNode extends AbCNode {
 
 						@Override
 						public boolean execute(RandomGenerator r, double starting_time, double duration) {
-							getSystem().sendingDone();
 							getSystem().dataSent( ComponentNode.this, ComponentNode.this.nextId,startSendingTime);
 							parent.receive( new AbCMessage(ComponentNode.this, MessageType.DATA, ComponentNode.this.nextId, null, parent));
 							isSending = false;
@@ -117,7 +127,6 @@ public class ComponentNode extends AbCNode {
 
 					@Override
 					public boolean execute(RandomGenerator r, double starting_time, double duration) {
-						getSystem().addSender();
 						startSendingTime = starting_time;
 						ComponentNode.this.isSending = true;
 						ComponentNode.this.nextId = -1;
@@ -153,18 +162,7 @@ public class ComponentNode extends AbCNode {
 							getSystem().registerWaitingTime((starting_time+duration)-startSendingTime);
 						}
 						if (message.getType()==MessageType.DATA) {
-							if (lastReceived != message.getMessageIndex()-1) {
-								System.out.println("Out of Order: expected "+(lastReceived+1)+" is "+message.getMessageIndex());
-							}
-							if (lastReceived >= message.getMessageIndex()) {
-								System.out.println("Duplicated data: expected "+(lastReceived+1)+" is "+message.getMessageIndex());
-							}
-							updateLastReceivedIndex( message.getMessageIndex() );							
-							getSystem().dataReceived( ComponentNode.this , message.getMessageIndex(), starting_time+duration );
-							if (previousMessageTime>=0) {
-								getSystem().registerMessageInterval(starting_time+duration-previousMessageTime);
-							} 
-							previousMessageTime = starting_time+duration;
+							deliveryQueue.add(message);
 						}
 						return true;
 					}
@@ -193,6 +191,44 @@ public class ComponentNode extends AbCNode {
 	protected void setParent( AbCNode parent ) {
 		this.parent = parent;
 	}
+
+	public boolean isASender() {
+		return this.isASender;
+	}
+
+	public void setSender(boolean b) {
+		this.isASender = b;
+	}
+
+
+	private WeightedStructure<Activity> getHandlingWaitingMessageActivity() {
+		return new WeightedElement<Activity>( 
+				getSystem().getMessageHandlingRate(this) , 
+				new Activity() {
+
+					@Override
+					public String getName() {
+						return this.toString()+"!";
+					}
+
+					@Override
+					public boolean execute(RandomGenerator r, double starting_time, double duration) {
+						AbCMessage message = deliveryQueue.poll();
+						updateLastReceivedIndex( message.getMessageIndex() );							
+						getSystem().dataReceived( ComponentNode.this , message.getMessageIndex(), starting_time+duration );
+						if (previousMessageTime>=0) {
+							getSystem().registerMessageInterval(starting_time+duration-previousMessageTime);
+						} 
+						previousMessageTime = starting_time+duration;
+						return true;
+					}
+					
+				}
+			);
+
+	}
+
+	
 	
 
 }
