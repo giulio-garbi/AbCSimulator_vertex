@@ -1,4 +1,4 @@
-# AbCSimulator
+# AbC Simulator
 
 AbCSimulator is used to assess the performance of three different distributed infrastructures, proposed to coordinate the interaction for multiparty communication models.
 
