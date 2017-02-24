@@ -31,6 +31,7 @@ import eu.quanticol.abcsimulator.MaxMessageInterval;
 import eu.quanticol.abcsimulator.MinDeliveryTime;
 import eu.quanticol.abcsimulator.MinMessageInterval;
 import eu.quanticol.abcsimulator.NumberOfDeliveredMessages;
+import eu.quanticol.abcsimulator.P2PStructureFactory;
 import eu.quanticol.abcsimulator.SingleServerFactory;
 import eu.quanticol.abcsimulator.TravellingMessages;
 import eu.quanticol.abcsimulator.TreeStructureFactory;
@@ -65,7 +66,8 @@ public class RunTreeServerSimulation {
 		double simulationTime = 2000;
 		int samples = 100;
 		int replications = 10;
-		TreeStructureFactory factory = new TreeStructureFactory(3,5,5,10, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
+//		TreeStructureFactory factory = new TreeStructureFactory(3,5,5,10, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
+		P2PStructureFactory factory = new P2PStructureFactory(5,2,5,-1, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());

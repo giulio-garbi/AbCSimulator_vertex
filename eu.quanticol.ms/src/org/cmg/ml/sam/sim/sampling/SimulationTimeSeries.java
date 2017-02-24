@@ -62,7 +62,7 @@ public class SimulationTimeSeries {
 	public void printTimeSeries( PrintStream out ) {
 		out.println(name);
 		for( int i=0 ; i<data.length ; i++ ) {
-			out.println(getTime(i)+"\t"+getMean(i));
+			out.println(getTime(i)+"\t"+getMean(i)+"\t"+(-getStandardDeviation(i))+"\t"+(getStandardDeviation(i)));
 		}
 	}
 	

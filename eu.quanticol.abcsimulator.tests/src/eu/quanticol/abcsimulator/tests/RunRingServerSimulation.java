@@ -66,7 +66,7 @@ public class RunRingServerSimulation {
 		double simulationTime = 2000;
 		int samples = 100;
 		int replications = 10;
-		RingStructureFactory factory = new RingStructureFactory(128,1,-1, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
+		RingStructureFactory factory = new RingStructureFactory(31,5,15, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());

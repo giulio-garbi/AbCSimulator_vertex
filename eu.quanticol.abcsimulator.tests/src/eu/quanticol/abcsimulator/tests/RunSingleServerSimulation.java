@@ -64,10 +64,10 @@ public class RunSingleServerSimulation {
 				xyGraph.getPrimaryXAxis().setAutoScale(true);
 				xyGraph.getPrimaryYAxis().setAutoScale(true);
 		FileOutputStream fout=new FileOutputStream("mfile.txt");
-		double simulationTime = 2000;
+		double simulationTime = 5000;
 		int samples = 100;
 		int replications = 10;
-		SingleServerFactory factory = new SingleServerFactory(512,10, 10,(x,y) -> 15.0 , x -> 1000.0 , x -> 1.00 );
+		SingleServerFactory factory = new SingleServerFactory(155,15, 31,(x,y) -> 15.0 , x -> 1000.0 , x -> 1.00 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);		
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());
