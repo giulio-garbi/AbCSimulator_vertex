@@ -63,12 +63,22 @@ public class RunTreeServerSimulation {
 				xyGraph.getPrimaryXAxis().setAutoScale(true);
 				xyGraph.getPrimaryYAxis().setAutoScale(true);
 		FileOutputStream fout=new FileOutputStream("mfile.txt");
+		
+		// change simluation Time
 		double simulationTime = 2000;
+		
+		// choose the number of samples
 		int samples = 100;
+		
+		// choose the number of replications 
 		int replications = 10;
+		
+		// choose the system configurations
 //		TreeStructureFactory factory = new TreeStructureFactory(3,5,5,10, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
 		P2PStructureFactory factory = new P2PStructureFactory(5,2,5,-1, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
+		
+		// the measures we consider 
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());
 		StatisticSampling<AbCSystem> minDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MinDeliveryTime());
@@ -77,6 +87,9 @@ public class RunTreeServerSimulation {
 		StatisticSampling<AbCSystem> averageTimeInterval = new StatisticSampling<>(samples, simulationTime/samples, new AverageMessageInterval());
 		StatisticSampling<AbCSystem> maxTimeInterval = new StatisticSampling<>(samples, simulationTime/samples, new MaxMessageInterval());
 		StatisticSampling<AbCSystem> minTimeInterval = new StatisticSampling<>(samples, simulationTime/samples, new MinMessageInterval());
+		
+		
+		// select the measures for simulation 
 		SamplingCollection<AbCSystem> collection = new SamplingCollection<>( averageDeliveryTime, maxDeliveryTime, minDeliveryTime, numberOfDeliveredMessages, averageTimeInterval,maxTimeInterval,minTimeInterval);
 		
 //	

@@ -64,10 +64,20 @@ public class RunSingleServerSimulation {
 				xyGraph.getPrimaryXAxis().setAutoScale(true);
 				xyGraph.getPrimaryYAxis().setAutoScale(true);
 		FileOutputStream fout=new FileOutputStream("mfile.txt");
-		double simulationTime = 5000;
-		int samples = 100;
-		int replications = 10;
+		
+		// change simluation Time
+				double simulationTime = 2000;
+				
+				// choose the number of samples
+				int samples = 100;
+				
+				// choose the number of replications 
+				int replications = 10;
+				
+				// choose the system configurations
 		SingleServerFactory factory = new SingleServerFactory(155,15, 31,(x,y) -> 15.0 , x -> 1000.0 , x -> 1.00 );
+		
+		// the measures we consider 
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);		
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());
@@ -80,6 +90,8 @@ public class RunSingleServerSimulation {
 		StatisticSampling<AbCSystem> minTimeInterval = new StatisticSampling<>(samples, simulationTime/samples, new MinMessageInterval());
 //		StatisticSampling<AbCSystem> numberOfMessages = new StatisticSampling<>(2001, 0.5, new NumberOfDeliveredMessages());
 //		StatisticSampling<AbCSystem> sentMessages = new StatisticSampling<>(2001, 0.5, new TravellingMessages());
+		
+		// select the measures for simulation 
 		SamplingCollection<AbCSystem> collection = new SamplingCollection<>( averageDeliveryTime, maxDeliveryTime, minDeliveryTime, numberOfDeliveredMessages, averageTimeInterval,minTimeInterval,maxTimeInterval);
 		env.setSampling(collection);
 		env.simulate(replications,simulationTime);
