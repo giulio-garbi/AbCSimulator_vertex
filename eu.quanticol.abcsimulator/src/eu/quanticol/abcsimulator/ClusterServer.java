@@ -93,7 +93,7 @@ public class ClusterServer extends AbCNode {
 							@Override
 							public boolean execute(RandomGenerator r, double starting_time, double duration) {
 								waitingQueue.get(k).remove(message);
-								handleDataPacket(message.getSource(), k,message.getMessageIndex());
+								handleDataPacket(message.getSource(), k,message);
 								return true;
 							}
 							
@@ -126,7 +126,7 @@ public class ClusterServer extends AbCNode {
 								switch (message.getType()) {
 								case DATA:
 									//waitingQueue.get(k).add(message);
-									handleDataPacket(message.getSource(), k,message.getMessageIndex());
+									handleDataPacket(message.getSource(), k,message);
 									break;
 								case ID_REQUEST:
 									handleIndexRequest(k,message.getSource(), message.getRoute());	
@@ -145,7 +145,7 @@ public class ClusterServer extends AbCNode {
 	}
 	
 	
-	protected void handleDataPacket( AbCNode from , int k, int index ) {
+	protected void handleDataPacket( AbCNode from , int k, AbCMessage message ) {
 //		if (this.next_index != index) {
 //			System.out.println("SERVER: "+this.next_index+"->"+index);
 //		}
@@ -154,11 +154,11 @@ public class ClusterServer extends AbCNode {
 //		}
 		for (AbCNode n : children.values()) {
 			if (from != n) {
-				outQueue.get(k).add( new AbCMessage( this , MessageType.DATA , index , null , n  ) );				
+				outQueue.get(k).add( new AbCMessage( this , MessageType.DATA , message.getMessageIndex() , message.getData(), null , n  ) );				
 			}
 		}
 //		System.out.println(getIndex()+": "+this.next_index+"<->"+index);
-		this.next_index = index+1;
+		this.next_index = message.getMessageIndex()+1;
 //		if (!waitingQueue.isEmpty()&&waitingQueue.peek().getMessageIndex()==next_index) {
 //			inQueue.addFirst(waitingQueue.poll());
 //		}
@@ -167,7 +167,7 @@ public class ClusterServer extends AbCNode {
 	protected void handleIndexRequest( int k, AbCNode from , LinkedList<Integer> route ) {
 		int message_index = this.current_index++;	
 		AbCNode to = children.get(route.pollLast());
-		outQueue.get(k).add( new AbCMessage(this, MessageType.ID_REPLY, message_index, route, to));
+		outQueue.get(k).add( new AbCMessage(this, MessageType.ID_REPLY, message_index, null, route, to));
 	}
 
 	private WeightedStructure<Activity> getSendingActivity(int k) {

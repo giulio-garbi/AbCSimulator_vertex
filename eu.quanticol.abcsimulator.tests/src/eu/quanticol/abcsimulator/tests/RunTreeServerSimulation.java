@@ -75,7 +75,7 @@ public class RunTreeServerSimulation {
 		
 		// choose the system configurations
 //		TreeStructureFactory factory = new TreeStructureFactory(3,5,5,10, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
-		P2PStructureFactory factory = new P2PStructureFactory(5,2,5,-1, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
+		P2PStructureFactory factory = new P2PStructureFactory(5,2,5,0.1f, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		
 		// the measures we consider 

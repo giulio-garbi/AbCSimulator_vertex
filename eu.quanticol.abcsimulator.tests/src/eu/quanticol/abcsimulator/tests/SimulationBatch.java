@@ -62,9 +62,9 @@ public class SimulationBatch {
 	public static int replications = 10;
 
 	
-	public static void runTreeSimulation( int levels , int children , int agents , int sender ) throws FileNotFoundException {
+	public static void runTreeSimulation( int levels , int children , int agents , float p ) throws FileNotFoundException {
 //		TreeStructureFactory factory = new TreeStructureFactory(3,5,5,10, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
-		P2PStructureFactory factory = new P2PStructureFactory(levels,children,agents,sender, (x,y) -> TRANSMISSION_RATE , x -> HANDLING_RATE , x -> SENDIND_RATE );
+		P2PStructureFactory factory = new P2PStructureFactory(levels,children,agents,p, (x,y) -> TRANSMISSION_RATE , x -> HANDLING_RATE , x -> SENDIND_RATE );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());
@@ -79,7 +79,7 @@ public class SimulationBatch {
 //		averageWaitingSize.printTimeSeries(System.out);
 		env.setSampling(collection);
 		env.simulate(replications,simulationTime);			
-		saveSimulationData( T_PREFIX+"_"+levels+"_"+children+"_"+agents+(sender<0?"_CI":"") ,
+		saveSimulationData( T_PREFIX+"_"+levels+"_"+children+"_"+agents+"_"+p ,
 			averageDeliveryTime ,
 			maxDeliveryTime ,
 			minDeliveryTime ,
@@ -90,9 +90,9 @@ public class SimulationBatch {
 		);
 	}
 
-	public static void runClusterSimulation( int cluster , int agents , int sender ) throws FileNotFoundException {
+	public static void runClusterSimulation( int cluster , int agents , float p ) throws FileNotFoundException {
 //		TreeStructureFactory factory = new TreeStructureFactory(3,5,5,10, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
-		SingleServerFactory factory = new SingleServerFactory(agents,sender, cluster, (x,y) -> TRANSMISSION_RATE , x -> HANDLING_RATE , x -> SENDIND_RATE );
+		SingleServerFactory factory = new SingleServerFactory(agents,p, cluster, (x,y) -> TRANSMISSION_RATE , x -> HANDLING_RATE , x -> SENDIND_RATE );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());
@@ -107,7 +107,7 @@ public class SimulationBatch {
 //		averageWaitingSize.printTimeSeries(System.out);
 		env.setSampling(collection);
 		env.simulate(replications,simulationTime);			
-		saveSimulationData( C_PREFIX+"_"+cluster+"_"+agents+(sender<0?"_CI":"") ,
+		saveSimulationData( C_PREFIX+"_"+cluster+"_"+agents+"_"+p ,
 			averageDeliveryTime ,
 			maxDeliveryTime ,
 			minDeliveryTime ,
@@ -118,9 +118,9 @@ public class SimulationBatch {
 		);
 	}
 
-	public static void runRingSimulation( int elements , int agents , int sender ) throws FileNotFoundException {
+	public static void runRingSimulation( int elements , int agents , float p ) throws FileNotFoundException {
 //		TreeStructureFactory factory = new TreeStructureFactory(3,5,5,10, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
-		RingStructureFactory factory = new RingStructureFactory(elements,agents,sender, (x,y) -> TRANSMISSION_RATE , x -> HANDLING_RATE , x -> SENDIND_RATE );
+		RingStructureFactory factory = new RingStructureFactory(elements,agents,p, (x,y) -> TRANSMISSION_RATE , x -> HANDLING_RATE , x -> SENDIND_RATE );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		StatisticSampling<AbCSystem> averageDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new AverageDeliveryTime());
 		StatisticSampling<AbCSystem> maxDeliveryTime = new StatisticSampling<>(samples, simulationTime/samples, new MaxDeliveryTime());
@@ -135,7 +135,7 @@ public class SimulationBatch {
 //		averageWaitingSize.printTimeSeries(System.out);
 		env.setSampling(collection);
 		env.simulate(replications,simulationTime);			
-		saveSimulationData( R_PREFIX+"_"+elements+"_"+agents+(sender<0?"_CI":"") ,
+		saveSimulationData( R_PREFIX+"_"+elements+"_"+agents+"_"+p ,
 			averageDeliveryTime ,
 			maxDeliveryTime ,
 			minDeliveryTime ,
@@ -169,39 +169,42 @@ public class SimulationBatch {
 
 
 	public static void main(String[] argv) throws FileNotFoundException {
-		System.out.println("C[10,155] CI");
-		runClusterSimulation(10, 155, -1);
-		System.out.println("C[10,310] CI");
-		runClusterSimulation(10, 310, -1);
+		float sparse155 = 0.01f,  dense155 = 0.1f,
+			  sparse310 = 0.005f, dense310 = 0.05f,
+			  sparse620 = 0.005f, dense620 = 0.05f;
+		System.out.println("C[10,155] dense");
+		runClusterSimulation(10, 155, dense155);
+		System.out.println("C[10,310] dense");
+		runClusterSimulation(10, 310, dense310);
 //		runClusterSimulation(10, 620, -1);
-		System.out.println("C[20,155] CI");
-		runClusterSimulation(20, 155, -1);
-		System.out.println("C[20,310] CI");
-		runClusterSimulation(20, 310, -1);
+		System.out.println("C[20,155] dense");
+		runClusterSimulation(20, 155, dense155);
+		System.out.println("C[20,310] dense");
+		runClusterSimulation(20, 310, dense310);
 //		runClusterSimulation(20, 620, -1);
-		System.out.println("C[31,155] CI");
-		runClusterSimulation(31, 155, -1);
-		System.out.println("C[31,310] CI");
-		runClusterSimulation(31, 310, -1);
+		System.out.println("C[31,155] dense");
+		runClusterSimulation(31, 155, dense155);
+		System.out.println("C[31,310] dense");
+		runClusterSimulation(31, 310, dense310);
 //		runClusterSimulation(31, 620, -1);
 		System.out.println("C[10,155]");
-		runClusterSimulation(10, 155, 15);
+		runClusterSimulation(10, 155, sparse155);
 		System.out.println("C[10,310]");
-		runClusterSimulation(10, 310, 31);
+		runClusterSimulation(10, 310, sparse310);
 		System.out.println("C[10,620]");
-		runClusterSimulation(10, 620, 62);
+		runClusterSimulation(10, 620, sparse620);
 		System.out.println("C[20,155]");
-		runClusterSimulation(20, 155, 15);
+		runClusterSimulation(20, 155, sparse155);
 		System.out.println("C[20,310]");
-		runClusterSimulation(20, 310, 31);
+		runClusterSimulation(20, 310, sparse310);
 		System.out.println("C[20,620]");
-		runClusterSimulation(20, 620, 62);
+		runClusterSimulation(20, 620, sparse620);
 		System.out.println("C[31,155]");
-		runClusterSimulation(31, 155, 15);
+		runClusterSimulation(31, 155, sparse155);
 		System.out.println("C[31,310]");
-		runClusterSimulation(31, 310, 31);
+		runClusterSimulation(31, 310, sparse310);
 		System.out.println("C[31,620]");
-		runClusterSimulation(31, 620, 62);
+		runClusterSimulation(31, 620, sparse620);
 //		runRingSimulation(5, 31, -1);
 //		runRingSimulation(5, 62, -1);
 //		runRingSimulation(5, 124, -1);

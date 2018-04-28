@@ -75,7 +75,7 @@ public class RunSingleServerSimulation {
 				int replications = 10;
 				
 				// choose the system configurations
-		SingleServerFactory factory = new SingleServerFactory(155,15, 31,(x,y) -> 15.0 , x -> 1000.0 , x -> 1.00 );
+		SingleServerFactory factory = new SingleServerFactory(155,0.1f, 31,(x,y) -> 15.0 , x -> 1000.0 , x -> 1.00 );
 		
 		// the measures we consider 
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);		

@@ -83,7 +83,7 @@ public class ServerNode extends AbCNode {
 							@Override
 							public boolean execute(RandomGenerator r, double starting_time, double duration) {
 								waitingQueue.remove(message);
-								handleDataPacket(message.getSource(), message.getMessageIndex());
+								handleDataPacket(message.getSource(), message);
 								return true;
 							}
 							
@@ -125,7 +125,7 @@ public class ServerNode extends AbCNode {
 //										System.out.println("WQ SIZE AT: "+getIndex()+": "+waitingQueue.size());
 //									}
 									if ((parent != null)&&(message.getSource() != parent)) {
-										outQueue.add( new AbCMessage( ServerNode.this , MessageType.DATA , message.getMessageIndex() , null , parent  ) );
+										outQueue.add( new AbCMessage( ServerNode.this , MessageType.DATA , message.getMessageIndex() , message.getData(), null , parent  ) );
 									}									
 									waitingQueue.add(message);
 									break;
@@ -147,7 +147,7 @@ public class ServerNode extends AbCNode {
 	}
 	
 	
-	protected void handleDataPacket( AbCNode from , int index ) {
+	protected void handleDataPacket( AbCNode from , AbCMessage message ) {
 //		if (this.next_index != index) {
 //			System.out.println("SERVER: "+this.next_index+"->"+index);
 //		}
@@ -156,11 +156,11 @@ public class ServerNode extends AbCNode {
 //		}
 		for (AbCNode n : children.values()) {
 			if (from != n) {
-				outQueue.add( new AbCMessage( this , MessageType.DATA , index , null , n  ) );				
+				outQueue.add( new AbCMessage( this , MessageType.DATA , message.getMessageIndex(), message.getData() , null , n  ) );				
 			}
 		}
 //		System.out.println(getIndex()+": "+this.next_index+"<->"+index);
-		this.next_index = index+1;
+		this.next_index = message.getMessageIndex()+1;
 //		if (!waitingQueue.isEmpty()&&waitingQueue.peek().getMessageIndex()==next_index) {
 //			inQueue.addFirst(waitingQueue.poll());
 //		}
@@ -169,17 +169,17 @@ public class ServerNode extends AbCNode {
 	protected void handleIndexRequest( AbCNode from , LinkedList<Integer> route ) {
 		if (parent != null) {
 			route.add(this.getIndex());
-			outQueue.add( new AbCMessage(this, MessageType.ID_REQUEST, -1, route, parent));
+			outQueue.add( new AbCMessage(this, MessageType.ID_REQUEST, -1, null, route, parent));
 		} else {
 			int message_index = this.current_index++;	
 			AbCNode to = children.get(route.pollLast());
-			outQueue.add( new AbCMessage(this, MessageType.ID_REPLY, message_index, route, to));
+			outQueue.add( new AbCMessage(this, MessageType.ID_REPLY, message_index, null, route, to));
 		}
 	}
 
 	protected void handleIndexReply( int index , LinkedList<Integer> route ) {
 		AbCNode to = children.get(route.pollLast());
-		outQueue.add( new AbCMessage(this, MessageType.ID_REPLY, index, route, to));
+		outQueue.add( new AbCMessage(this, MessageType.ID_REPLY, index, null, route, to));
 	}
 
 	private WeightedStructure<Activity> getSendingActivity() {

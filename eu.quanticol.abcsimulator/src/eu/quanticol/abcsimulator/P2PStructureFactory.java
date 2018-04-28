@@ -5,6 +5,7 @@ package eu.quanticol.abcsimulator;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -23,15 +24,16 @@ public class P2PStructureFactory implements SimulationFactory<AbCSystem>{
 	private BiFunction<AbCNode, AbCNode, Double> sendingRate;
 	private Function<AbCNode, Double> handlingRate;
 	private Function<AbCNode, Double> dataRate;
-	private int maxSender;
 	private int levels;
 	private int children;
+	private int[][] graph;
 	
 	public P2PStructureFactory(
 			int levels, //Tree levels
 			int children, //Number of children for each node 
-			int agents, //Number of leaves for each node 
-			int maxSender, //Max number of senders at the same time (-1 is unbound)
+			int agents, //Number of leaves for each node
+			float p, 
+			//int maxSender, //Max number of senders at the same time (-1 is unbound)
 		BiFunction<AbCNode, AbCNode, Double> sendingRate,
 		Function<AbCNode, Double> handlingRate,
 		Function<AbCNode, Double> dataRate		
@@ -42,7 +44,9 @@ public class P2PStructureFactory implements SimulationFactory<AbCSystem>{
 		this.sendingRate = sendingRate;
 		this.handlingRate = handlingRate;
 		this.dataRate = dataRate;
-		this.maxSender = maxSender;
+		int seed = 1;
+		int treeNodes = ((int)Math.pow(children, levels)-1)/(children - 1);
+		this.graph = GraphVertex.makeGraph(new Random(seed), treeNodes*agents, p);
  	}	
 
 	@Override
@@ -52,7 +56,8 @@ public class P2PStructureFactory implements SimulationFactory<AbCSystem>{
 		int counter = 1;
 		LinkedList<ServerNode> level = new LinkedList<>();
 		level.add(root);
-		ArrayList<ComponentNode> nodes = new ArrayList<>();		
+		ArrayList<ComponentNode> nodes = new ArrayList<>();	
+		int nodeIdx = 0;
 		for( int l=1 ; l<levels ; l++ ) {
 //			System.out.println(level);
 			LinkedList<ServerNode> nextLevel = new LinkedList<>();
@@ -64,38 +69,28 @@ public class P2PStructureFactory implements SimulationFactory<AbCSystem>{
 					nextLevel.add(n);
 				}
 				for( int i=0 ; i<agents ; i++ ) {
-					ComponentNode n = new ComponentNode(system, counter+i, parent, (maxSender<0));
+					ComponentNode n = new ComponentNode(system, counter+i, parent, nodeIdx, this.graph[nodeIdx]);
 					nodes.add(n);
 //					System.out.print(parent.getIndex()+" ");
 					parent.addChild( n );
+					nodeIdx++;
 				}				
 			}
 			level=nextLevel;
 		}
 		for (ServerNode parent : level) {
 			for( int i=0 ; i<agents ; i++ ) {
-				ComponentNode n = new ComponentNode(system, counter+i, parent, (maxSender<0));
+				ComponentNode n = new ComponentNode(system, counter+i, parent, nodeIdx, this.graph[nodeIdx]);
 				nodes.add(n);
 //				System.out.print(parent.getIndex()+" ");
 				parent.addChild( n );
+				nodeIdx++;
 			}				
 		}
 		
 		System.out.println(nodes.size());
 
-		RandomGenerator r = RandomGeneratorRegistry.getInstance().get();
-		
-		if (maxSender>0) {
-			int senderCounter = 0;
-			while( senderCounter < maxSender ) {
-				int id = r.nextInt(nodes.size());
-				ComponentNode n = nodes.get(id);
-				if (!n.isASender()) {
-					n.setSender( true );
-					senderCounter++;
-				}
-			}
-		}
+		//RandomGenerator r = RandomGeneratorRegistry.getInstance().get();
 		
 		system.setRoot( root );
 		system.setDataRate(dataRate);

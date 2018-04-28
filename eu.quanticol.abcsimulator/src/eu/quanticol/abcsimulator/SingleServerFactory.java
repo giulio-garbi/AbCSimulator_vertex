@@ -4,6 +4,7 @@
 package eu.quanticol.abcsimulator;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -22,11 +23,11 @@ public class SingleServerFactory implements SimulationFactory<AbCSystem>{
 	private BiFunction<AbCNode, AbCNode, Double> sendingRate;
 	private Function<AbCNode, Double> handlingRate;
 	private Function<AbCNode, Double> dataRate;
-	private int maxSender;
 	private int clusterSize;
+	private int[][] graph;
 	
 	public SingleServerFactory(int agents,
-			int maxSender,
+			float p,
 			int clusterSize,
 		BiFunction<AbCNode, AbCNode, Double> sendingRate,
 		Function<AbCNode, Double> handlingRate,
@@ -36,8 +37,10 @@ public class SingleServerFactory implements SimulationFactory<AbCSystem>{
 		this.sendingRate = sendingRate;
 		this.handlingRate = handlingRate;
 		this.dataRate = dataRate;
-		this.maxSender = maxSender;
 		this.clusterSize = clusterSize;
+		
+		int seed = 1;
+		this.graph = GraphVertex.makeGraph(new Random(seed), agents, p);
  	}	
 
 	@Override
@@ -47,25 +50,13 @@ public class SingleServerFactory implements SimulationFactory<AbCSystem>{
 		ClusterServer root = new ClusterServer(system, 0,clusterSize);
 
 		
-		RandomGenerator r = RandomGeneratorRegistry.getInstance().get();
+		//RandomGenerator r = RandomGeneratorRegistry.getInstance().get();
 		
 		ArrayList<ComponentNode> nodes = new ArrayList<>();		
 		for( int i=0 ; i<agents ; i++ ) {
-			ComponentNode n = new ComponentNode(system, i+1, root,maxSender<0);
+			ComponentNode n = new ComponentNode(system, i+1, root,i, this.graph[i]);
 			root.addChild( n );
 			nodes.add(n);
-		}
-
-		if (maxSender>0) {
-			int senderCounter = 0;
-			while( senderCounter < maxSender ) {
-				int id = r.nextInt(nodes.size());
-				ComponentNode n = nodes.get(id);
-				if (!n.isASender()) {
-					n.setSender( true );
-					senderCounter++;
-				}
-			}
 		}
 		
 

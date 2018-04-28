@@ -3,9 +3,11 @@
  */
 package eu.quanticol.abcsimulator;
 
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
+import java.util.Queue;
 
 import org.apache.commons.math3.random.RandomGenerator;
 import org.cmg.ml.sam.sim.Activity;
@@ -37,21 +39,27 @@ public class ComponentNode extends AbCNode {
 	
 	private double previousMessageTime = -1;
 	
-	private boolean isASender;
-
+	private GraphVertex vertex;
+	private boolean justStarted;
+	private int requestsToMake;
+	private Queue<Object[]> msgToSend;
+	
 	protected AbCNode parent;
 	
-	public ComponentNode(AbCSystem system, int id, AbCNode parent,boolean isASender) {
+	public ComponentNode(AbCSystem system, int id, AbCNode parent, int nodeId, int[] N) {
 		super(system, id);
 		setParent( parent );
 		inQueue = new LinkedList<>();
-		this.isASender = isASender;
+		vertex = new GraphVertex(nodeId, N);
+		justStarted = true;
+		msgToSend = new ArrayDeque<Object[]>();
+		requestsToMake = 0;
 		this.deliveryQueue = new PriorityQueue<AbCMessage>(10,new MessageComparator());
 	}
 
-	public ComponentNode(AbCSystem system, int id, AbCNode parent) {
+	/*public ComponentNode(AbCSystem system, int id, AbCNode parent) {
 		this(system,id,parent,false);
-	}
+	}*/
 
 	@Override
 	public void receive(AbCMessage message) {
@@ -62,15 +70,55 @@ public class ComponentNode extends AbCNode {
 	public WeightedStructure<Activity> getActivities(RandomGenerator r) {
 		WeightedStructure<Activity> result = new ComposedWeightedStructure<>();
 		result = result.add(getReceivingActivity());
-		if ((!isSending)&&(isASender)) {
+		if(justStarted) {
+			if (!deliveryQueue.isEmpty()&&(deliveryQueue.peek().getMessageIndex()==lastReceived+1)) {
+				//TODO react! {result = result.add( getSendRequestActivity() );} before sending
+				Object[] msg = vertex.onStart(deliveryQueue.peek().getData());
+				if(msg != null) {
+					msgToSend.add(msg);
+					requestsToMake++;
+				}
+				result = result.add( getHandlingWaitingMessageActivity() );
+			} else {
+				Object[] msg;
+				msg = vertex.onStart(null);
+				if(msg != null) {
+					msgToSend.add(msg);
+					requestsToMake++;
+				}
+			}
+			justStarted = false;
+		} else {		
+			if (!deliveryQueue.isEmpty()&&(deliveryQueue.peek().getMessageIndex()==lastReceived+1)) {
+				//TODO react! {result = result.add( getSendRequestActivity() );} before sending
+				Object[] msg = vertex.onMessage(deliveryQueue.peek().getData());
+				if(msg != null) {
+					msgToSend.add(msg);
+					requestsToMake++;
+				}
+				result = result.add( getHandlingWaitingMessageActivity() );
+			}
+		}
+		
+		if ((!isSending)&&(requestsToMake > 0)) {
+			result = result.add( getSendRequestActivity() );
+			requestsToMake--;
+		}
+		if ((isSending)&&(nextId!=-1)) {
+			result = result.add( getSendDataActivity() );
+		}
+		
+		
+		/*if ((!isSending)&&(isASender)) {
 			result = result.add( getSendRequestActivity() );
 		}
 		if ((isSending)&&(nextId!=-1)) {
 			result = result.add( getSendDataActivity() );
 		}
 		if (!deliveryQueue.isEmpty()&&(deliveryQueue.peek().getMessageIndex()==lastReceived+1)) {
+			//TODO react! {result = result.add( getSendRequestActivity() );} before sending
 			result = result.add( getHandlingWaitingMessageActivity() );
-		}
+		}*/
 		return result;
 	}
 
@@ -88,7 +136,7 @@ public class ComponentNode extends AbCNode {
 						@Override
 						public boolean execute(RandomGenerator r, double starting_time, double duration) {
 							getSystem().dataSent( ComponentNode.this, ComponentNode.this.nextId,startSendingTime);
-							parent.receive( new AbCMessage(ComponentNode.this, MessageType.DATA, ComponentNode.this.nextId, null, parent));
+							parent.receive( new AbCMessage(ComponentNode.this, MessageType.DATA, ComponentNode.this.nextId, msgToSend.poll(), null, parent));
 							isSending = false;
 							myIndexes.add(nextId);
 							updateLastReceivedIndex( lastReceived );
@@ -132,7 +180,7 @@ public class ComponentNode extends AbCNode {
 						ComponentNode.this.nextId = -1;
 						LinkedList<Integer> route = new LinkedList<>();
 						route.add(getIndex());
-						AbCMessage message = new AbCMessage(ComponentNode.this, MessageType.ID_REQUEST, -1, route, parent);
+						AbCMessage message = new AbCMessage(ComponentNode.this, MessageType.ID_REQUEST, -1, null, route, parent);
 						parent.receive( message);
 						return true;
 					}
@@ -190,14 +238,6 @@ public class ComponentNode extends AbCNode {
 
 	protected void setParent( AbCNode parent ) {
 		this.parent = parent;
-	}
-
-	public boolean isASender() {
-		return this.isASender;
-	}
-
-	public void setSender(boolean b) {
-		this.isASender = b;
 	}
 
 

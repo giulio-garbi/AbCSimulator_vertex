@@ -41,7 +41,7 @@ public class SimulationTrace extends AbstractDataProvider {
 				);
 	}
 
-	@Override
+	//@Override
 	protected void innerUpdate() {
 		// TODO Auto-generated method stub
 		
@@ -51,7 +51,7 @@ public class SimulationTrace extends AbstractDataProvider {
 		return serie.getConfidenceInterval( index );
 	}
 	
-	@Override
+	//@Override
 	protected void updateDataRange() {
 		this.xDataMinMax = new Range(0.0, serie.getTime(serie.getSize()-1));
 //		double minY = Double.MAX_VALUE;

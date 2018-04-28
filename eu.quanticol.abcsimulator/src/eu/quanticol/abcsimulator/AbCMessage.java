@@ -14,6 +14,8 @@ public class AbCMessage {
 	private AbCNode from;
 	
 	private AbCNode to;
+	
+	private Object[] data;
 
 	private MessageType type;
 	
@@ -27,9 +29,10 @@ public class AbCMessage {
 	 * @param messageIndex
 	 * @param route
 	 */
-	public AbCMessage(AbCNode from, MessageType type, int messageIndex, LinkedList<Integer> route, AbCNode to) {
+	public AbCMessage(AbCNode from, MessageType type, int messageIndex, Object[] data, LinkedList<Integer> route, AbCNode to) {
 		super();
 		this.type = type;
+		this.data = data;
 		this.messageIndex = messageIndex;
 		this.route = route;
 		this.from = from;
@@ -119,6 +122,10 @@ public class AbCMessage {
 	
 	public AbCNode getTarget() {
 		return to;
+	}
+
+	public Object[] getData() {
+		return data;
 	}
 	
 	

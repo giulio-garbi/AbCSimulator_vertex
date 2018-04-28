@@ -74,7 +74,7 @@ public class RunRingServerSimulation {
 		int replications = 10;
 		
 		// choose the system configurations
-		RingStructureFactory factory = new RingStructureFactory(31,5,15, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
+		RingStructureFactory factory = new RingStructureFactory(31,5,0.1f, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		
 		// the measures we consider 

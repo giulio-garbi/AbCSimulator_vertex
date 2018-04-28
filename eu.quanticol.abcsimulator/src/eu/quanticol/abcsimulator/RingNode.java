@@ -92,7 +92,7 @@ public class RingNode extends AbCNode {
 							@Override
 							public boolean execute(RandomGenerator r, double starting_time, double duration) {
 								waitingQueue.remove(message);
-								handleDataPacket(message.getSource(), message.getMessageIndex());
+								handleDataPacket(message.getSource(), message);
 								return true;
 							}
 							
@@ -126,13 +126,13 @@ public class RingNode extends AbCNode {
 								case DATA:
 									if (children.keySet().contains(message.getSource().getIndex())) {
 										if (next != null) {
-											outQueue.add( new AbCMessage( RingNode.this , MessageType.DATA , message.getMessageIndex() , null , next  ) );
+											outQueue.add( new AbCMessage( RingNode.this , MessageType.DATA , message.getMessageIndex() , message.getData(), null , next  ) );
 										}
 										waitingQueue.add(message);
 									} else {
 										if (!myIndexes.contains(message.getMessageIndex())) {
 											if (next != null) {
-												outQueue.add( new AbCMessage( RingNode.this , MessageType.DATA , message.getMessageIndex() , null , next  ) );
+												outQueue.add( new AbCMessage( RingNode.this , MessageType.DATA , message.getMessageIndex() , message.getData(), null , next  ) );
 											}
 											waitingQueue.add(message);
 										}
@@ -156,25 +156,25 @@ public class RingNode extends AbCNode {
 	}
 	
 	
-	protected void handleDataPacket( AbCNode from , int index ) {
+	protected void handleDataPacket( AbCNode from , AbCMessage message ) {
 		for (AbCNode n : children.values()) {
 			if (from != n) {
-				outQueue.add( new AbCMessage( this , MessageType.DATA , index , null , n  ) );				
+				outQueue.add( new AbCMessage( this , MessageType.DATA , message.getMessageIndex(), message.getData() , null , n  ) );				
 			}
 		}
-		this.next_index = index+1;
+		this.next_index = message.getMessageIndex()+1;
 	}
 	
 	protected void handleIndexRequest( AbCNode from , LinkedList<Integer> route ) {
 		int message_index = this.counter.getAndUpdate();	
 		AbCNode to = children.get(route.pollLast());
 		this.myIndexes.add(message_index);
-		outQueue.add( new AbCMessage(this, MessageType.ID_REPLY, message_index, route, to));
+		outQueue.add( new AbCMessage(this, MessageType.ID_REPLY, message_index, null, route, to));
 	}
 
 	protected void handleIndexReply( int index , LinkedList<Integer> route ) {
 		AbCNode to = children.get(route.pollLast());
-		outQueue.add( new AbCMessage(this, MessageType.ID_REPLY, index, route, to));
+		outQueue.add( new AbCMessage(this, MessageType.ID_REPLY, index, null, route, to));
 	}
 
 	private WeightedStructure<Activity> getSendingActivity() {
