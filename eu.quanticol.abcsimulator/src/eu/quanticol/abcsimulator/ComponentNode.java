@@ -4,6 +4,7 @@
 package eu.quanticol.abcsimulator;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
@@ -39,10 +40,10 @@ public class ComponentNode extends AbCNode {
 	
 	private double previousMessageTime = -1;
 	
-	private GraphVertex vertex;
+	private final ComponentBehaviour behaviour;
 	private boolean justStarted;
-	private int requestsToMake;
-	private Queue<Object[]> msgToSend;
+	private boolean requestsToMake;
+	private final int nodeId;
 	
 	protected AbCNode parent;
 	
@@ -50,10 +51,11 @@ public class ComponentNode extends AbCNode {
 		super(system, id);
 		setParent( parent );
 		inQueue = new LinkedList<>();
-		vertex = new GraphVertex(nodeId, N);
+		behaviour = new GraphVertex(nodeId, N);
+		//behaviour = new Counting(nodeId);
 		justStarted = true;
-		msgToSend = new ArrayDeque<Object[]>();
-		requestsToMake = 0;
+		requestsToMake = false;
+		this.nodeId = nodeId;
 		this.deliveryQueue = new PriorityQueue<AbCMessage>(10,new MessageComparator());
 	}
 
@@ -70,54 +72,47 @@ public class ComponentNode extends AbCNode {
 	public WeightedStructure<Activity> getActivities(RandomGenerator r) {
 		WeightedStructure<Activity> result = new ComposedWeightedStructure<>();
 		result = result.add(getReceivingActivity());
+
 		if(justStarted) {
 			if (!deliveryQueue.isEmpty()&&(deliveryQueue.peek().getMessageIndex()==lastReceived+1)) {
-				//TODO react! {result = result.add( getSendRequestActivity() );} before sending
-				Object[] msg = vertex.onStart(deliveryQueue.peek().getData());
-				if(msg != null) {
-					msgToSend.add(msg);
-					requestsToMake++;
-				}
 				result = result.add( getHandlingWaitingMessageActivity() );
 			} else {
-				Object[] msg;
-				msg = vertex.onStart(null);
-				if(msg != null) {
-					msgToSend.add(msg);
-					requestsToMake++;
-				}
+				requestsToMake |= behaviour.onStart();
 			}
-			justStarted = false;
 		} else {		
 			if (!deliveryQueue.isEmpty()&&(deliveryQueue.peek().getMessageIndex()==lastReceived+1)) {
-				//TODO react! {result = result.add( getSendRequestActivity() );} before sending
-				Object[] msg = vertex.onMessage(deliveryQueue.peek().getData());
-				if(msg != null) {
-					msgToSend.add(msg);
-					requestsToMake++;
-				}
 				result = result.add( getHandlingWaitingMessageActivity() );
 			}
 		}
 		
-		if ((!isSending)&&(requestsToMake > 0)) {
+		if ((!isSending)&&(requestsToMake)) {
 			result = result.add( getSendRequestActivity() );
-			requestsToMake--;
 		}
+		
 		if ((isSending)&&(nextId!=-1)) {
 			result = result.add( getSendDataActivity() );
 		}
+		/*
 		
-		
-		/*if ((!isSending)&&(isASender)) {
+		if ((!isSending)&&true) {//(nodeId == receives%155)&&(!justAsked)) {
+			//System.out.println("Sending "+nodeId+" "+justAsked);
+			//System.out.println("Sra "+nodeId);
 			result = result.add( getSendRequestActivity() );
+			//justAsked = true;
 		}
 		if ((isSending)&&(nextId!=-1)) {
+			//System.out.println("Sda "+nodeId);
 			result = result.add( getSendDataActivity() );
 		}
 		if (!deliveryQueue.isEmpty()&&(deliveryQueue.peek().getMessageIndex()==lastReceived+1)) {
-			//TODO react! {result = result.add( getSendRequestActivity() );} before sending
+			//receives++;
+			AbCMessage message = deliveryQueue.poll();
+			if(gotMsg.contains(message.getMessageIndex()))
+				throw new Error("Delivered twice!");
+			gotMsg.add(message.getMessageIndex());
+			//justAsked = false;
 			result = result.add( getHandlingWaitingMessageActivity() );
+			System.out.println("Got "+nodeId+" w "+result.getTotalWeight());
 		}*/
 		return result;
 	}
@@ -135,8 +130,12 @@ public class ComponentNode extends AbCNode {
 
 						@Override
 						public boolean execute(RandomGenerator r, double starting_time, double duration) {
+							//System.out.println("Sda "+nodeId+" !");
 							getSystem().dataSent( ComponentNode.this, ComponentNode.this.nextId,startSendingTime);
-							parent.receive( new AbCMessage(ComponentNode.this, MessageType.DATA, ComponentNode.this.nextId, msgToSend.poll(), null, parent));
+							ComponentBehaviour.GetMessage answ = behaviour.getMessage();
+							requestsToMake |= answ.wantSend;
+							Object[] data = answ.message == null ? null : answ.message.getData();
+							parent.receive( new AbCMessage(ComponentNode.this, MessageType.DATA, ComponentNode.this.nextId, data, null, parent));
 							isSending = false;
 							myIndexes.add(nextId);
 							updateLastReceivedIndex( lastReceived );
@@ -147,6 +146,7 @@ public class ComponentNode extends AbCNode {
 					}
 				);
 		} else {
+			//System.out.println("Sda "+nodeId+" null");
 			return null;
 		}
 	}
@@ -175,6 +175,8 @@ public class ComponentNode extends AbCNode {
 
 					@Override
 					public boolean execute(RandomGenerator r, double starting_time, double duration) {
+						//System.out.println("Sra "+nodeId+" !");
+						requestsToMake = false;
 						startSendingTime = starting_time;
 						ComponentNode.this.isSending = true;
 						ComponentNode.this.nextId = -1;
@@ -240,7 +242,6 @@ public class ComponentNode extends AbCNode {
 		this.parent = parent;
 	}
 
-
 	private WeightedStructure<Activity> getHandlingWaitingMessageActivity() {
 		return new WeightedElement<Activity>( 
 				getSystem().getMessageHandlingRate(this) , 
@@ -253,8 +254,18 @@ public class ComponentNode extends AbCNode {
 
 					@Override
 					public boolean execute(RandomGenerator r, double starting_time, double duration) {
+						//System.out.println("hwma "+nodeId);
 						AbCMessage message = deliveryQueue.poll();
-						updateLastReceivedIndex( message.getMessageIndex() );							
+						updateLastReceivedIndex( message.getMessageIndex() );
+						if(message.getData() != null) {
+							if(justStarted) {
+								requestsToMake |= behaviour.onStart(ComponentMessage.from(message));
+								justStarted = false;
+							} else {
+								requestsToMake |= behaviour.onMessage(ComponentMessage.from(message));
+							}
+						}
+						
 						getSystem().dataReceived( ComponentNode.this , message.getMessageIndex(), starting_time+duration );
 						if (previousMessageTime>=0) {
 							getSystem().registerMessageInterval(starting_time+duration-previousMessageTime);

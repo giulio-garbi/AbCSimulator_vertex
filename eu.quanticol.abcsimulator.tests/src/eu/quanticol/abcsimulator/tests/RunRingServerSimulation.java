@@ -65,7 +65,7 @@ public class RunRingServerSimulation {
 		FileOutputStream fout=new FileOutputStream("mfile.txt");
 		
 		// change simluation Time
-		double simulationTime = 2000;
+		double simulationTime = 10000;//2000000000000000.0;
 		
 		// choose the number of samples
 		int samples = 100;

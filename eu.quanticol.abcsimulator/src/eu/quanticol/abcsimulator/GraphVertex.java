@@ -3,19 +3,150 @@ package eu.quanticol.abcsimulator;
 import java.util.Random;
 import java.util.Vector;
 
-import org.apache.commons.math3.random.RandomGenerator;
+public class GraphVertex extends ComponentBehaviour {
+	
+	private final int id;
+	private final int[] N;
+	private int colour;
+	private int round;
+	private boolean assigned;
+	private int[] constraints;
+	private int counter;
+	private int[] used;
+	private int done;
+	private boolean sendTry;
 
-public class GraphVertex {
-	int id;
-	int[] N;
-	int colour;
-	int round;
-	boolean assigned;
-	int[] constraints;
-	int counter;
-	int[] used;
-	int done;
-	boolean sendTry;
+	public GraphVertex(int id, int[] N) {
+		this.id = id;
+		this.N = N;
+		this.colour = 0;
+		this.round = 0;
+		this.assigned = false;
+		this.constraints = new int[] {};
+		this.counter = 0;
+		this.used = new int[] {};
+		this.done = 0;
+		this.sendTry = true;
+	}
+	
+	private static boolean in(int[] v, int x) {
+		for(int i=0; i<v.length; i++) {
+			if(v[i] == x)
+				return true;
+		}
+		return false;
+	}
+	
+	private static int[] add(int[] v, int x) {
+		int[] newV = new int[v.length+1];
+		int i;
+		for(i=0; i<v.length && v[i] < x; i++)
+			newV[i] = v[i];
+		if(i < v.length && v[i] == x)
+			return v;
+		newV[i] = x;
+		for(; i<v.length; i++)
+			newV[i+1] = v[i];
+		return newV;
+	}
+	
+	private boolean wantToSend() {
+		return (!assigned && (sendTry || (counter == N.length - done && !in(used, colour) && !in(constraints, colour)))); 
+	}
+	
+	public GetMessage getMessage(){
+		ComponentMessage message = null;
+		if(!assigned && sendTry) {
+			colour = 0;
+			while(colour < used.length && used[colour] == colour) colour++;
+			sendTry = false;
+			if(counter == N.length - done &&  !in(constraints, colour)) {
+				assigned = true;
+				//System.out.format("Assign %03d %d\n", id, colour);
+				//System.out.println("Assign "+id+" "+colour);
+				message = new ComponentMessage("done", colour, round+1, id);
+			} else {
+				//System.out.println("Not yet "+id+" : "+counter +" "+ N.length +" "+ done+" "+in(used, colour) +" "+in(constraints, colour));
+				message = new ComponentMessage("try", colour, round, id);
+			}
+		} 
+		else {
+			if(!assigned && counter == N.length - done && !in(used, colour) && !in(constraints, colour)) {
+				assigned = true;
+				//System.out.format("Assign %03d %d\n", id, colour);
+				//System.out.println("Assign "+id+" "+colour);
+				message = new ComponentMessage("done", colour, round+1, id);
+			}//else if(!assigned)
+				//System.out.println("Not yet "+id+" : "+counter +" "+ N.length +" "+ done+" "+in(used, colour) +" "+in(constraints, colour));
+		}
+		return new GetMessage(message, wantToSend());	
+	}
+	
+	private boolean onDone(int doneCol, int doneRound){
+		done++;
+		used = add(used, doneCol);
+		if(round < doneRound) {
+			round = doneRound;
+			constraints = new int[] {};
+			sendTry = true;
+			counter = 0;
+		}
+		return wantToSend();
+	}
+	
+	private boolean onTry(int tryCol, int tryRound, int tryId){
+		if(id > tryId && round == tryRound) {
+			counter++;
+		} else if(id > tryId && round < tryRound) {
+			round = tryRound;
+			sendTry = true;
+			counter = 1;
+			constraints = new int[] {};
+		} else if(id < tryId && round == tryRound) {
+			counter++;
+			constraints = add(constraints, tryCol);
+		} else if(id < tryId && round < tryRound) {
+			round = tryRound;
+			sendTry = true;
+			counter = 1;
+			constraints = new int[] {tryCol};
+		}
+		return wantToSend();
+	}
+
+	@Override
+	public boolean onStart(ComponentMessage msg) {
+		if(msg == null) {
+			return wantToSend();
+		} else {
+			return onMessage(msg);
+		}
+	}
+
+	@Override
+	public boolean onMessage(ComponentMessage msg) {
+		if(msg.getData().length == 4) {
+			String type = (String)(msg.getData()[0]);
+			int col = (int)(msg.getData()[1]);
+			int rnd = (int)(msg.getData()[2]);
+			int senderId = (int)(msg.getData()[3]);
+			if(in(N, senderId)) {
+				//System.out.println(id+" got "+msg.toString());
+				switch(type) {
+				case "try":
+					return onTry(col, rnd, senderId);
+				case "done":
+					return onDone(col, rnd);
+				default:
+					return wantToSend();
+				}	
+			} else {
+				return wantToSend();
+			}
+		} else {
+			return wantToSend();
+		}
+	}
 	
 	private static int[] toIntA(Vector<Integer> v) {
 		int[] vA = new int[v.size()];
@@ -40,169 +171,13 @@ public class GraphVertex {
 		return adjA;
 	}
 	
-	public GraphVertex(int id, int[] N) {
-		this.id = id;
-		this.N = N;
-		colour = 0;
-		round = 0;
-		assigned = false;
-		constraints = new int[] {};
-		counter = 0;
-		used = new int[] {};
-		done = 0;
-		sendTry = true;
-	}
-	
-	public Object[] onStart(Object[] message) {
-		if(N.length == 0) {
-			return testDone();
-		} else if (message != null){
-			Object[] msg = onMessage(message);
-			if(msg != null)
-				return msg;
-			return testTry();
-		} else {
-			return testTry();
-		}
-	}
-	
-	private Object[] chooseColour() {
-		colour = 0;
-		while(colour < used.length && used[colour] == colour) colour++;
-		return new Object[] {"try", colour, round, id};
-	}
-	
-	public Object[] onMessage(Object[] message) {
-		if(assigned)
-			return null;
-		switch(message[0].toString()) {
-			case "try":{
-				return onTry(message);
-			}
-			case "done":{
-				return onDone(message);
-			}
-			default: {
-				return null;
+	public static boolean check(int[][] graph, int[] assignments) {
+		for(int i=0; i<graph.length; i++) {
+			for(int j: graph[i]) {
+				if(assignments[i] == assignments[j])
+					return false;
 			}
 		}
-	}
-
-	private Object[] onTry(Object[] message) {
-		int y = (int)message[1];
-		int z = (int)message[2];
-		int tid = (int)message[3];
-		
-		if(!isNeighbour(tid)) {
-			return null;
-		}
-		
-		if (round == z) {
-			if (id > tid) {
-			counter++;
-			return testDone();
-			} else if (id < tid) {
-			counter++;
-			newConstraint(y);
-			return testDone();
-			}
-		} else if (round < z) {
-			if (id > tid) {
-				round = z;
-				sendTry = true;
-				counter = 1;
-				constraints = new int[]{};
-				Object[] doneMsg = testDone();
-				if (doneMsg != null)
-					return doneMsg;
-				else
-					return testTry();
-			} else if (id < tid) {
-				round = z;
-				sendTry = true;
-				counter = 1;
-				constraints = new int[]{y};
-				Object[] doneMsg = testDone();
-				if (doneMsg != null)
-					return doneMsg;
-				else
-					return testTry();
-			}
-		}
-		return null;
-	}
-
-	private Object[] onDone(Object[] message) {
-		int y = (int)message[1];
-		int z = (int)message[2];
-		if (round < z) {
-			round = z;
-			constraints = new int[]{};
-			sendTry = true;
-			counter = 0;
-		}
-		done++;
-		newUsed(y);
-		Object[] doneMsg = testDone();
-		if (doneMsg != null)
-			return doneMsg;
-		else
-			return testTry();
-	}
-	
-	private static int[] insertInto(int[] v, int y) {
-		int[] vNew = new int[v.length + 1];
-		int i = 0;
-		while(i<v.length && v[i] < y) {
-			vNew[i] = v[i];
-			i++;
-		}
-		if(i<v.length && v[i] == y)
-			return v;
-		vNew[i] = y;
-		while(i<v.length) {
-			vNew[i+1] = v[i];
-			i++;
-		}
-		return vNew;
-	}
-	
-	private static boolean in(int[] v, int y) {
-		for(int i=0; i<v.length && v[i]>=y; i++)
-			if (v[i] == y)
-				return true;
-		return false;
-	}
-
-	private void newUsed(int y) {
-		used = insertInto(used, y);
-	}
-
-	private Object[] testTry() {
-		if(!assigned && sendTry) {
-			sendTry = false;
-			return chooseColour();
-		} else {
-			return null;
-		}
-	}
-
-	private void newConstraint(int y) {
-		constraints = insertInto(constraints, y);
-	}
-
-	private Object[] testDone() {
-		if(counter == N.length - done && !in(constraints, colour) && !in(used, colour)) {
-			assigned = true;
-			return new Object[] {"done", colour, round + 1, id};
-		} else
-			return null;
-	}
-
-	private boolean isNeighbour(int tid) {
-		for(int i=0; i < N.length && N[i] >= tid; i++)
-			if(N[i] == tid)
-				return true;
-		return false;
+		return true;
 	}
 }
