@@ -3,13 +3,9 @@
  */
 package eu.quanticol.abcsimulator;
 
-import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
-import java.util.Queue;
-
 import org.apache.commons.math3.random.RandomGenerator;
 import org.cmg.ml.sam.sim.Activity;
 import org.cmg.ml.sam.sim.util.ComposedWeightedStructure;
@@ -43,7 +39,8 @@ public class ComponentNode extends AbCNode {
 	private final ComponentBehaviour behaviour;
 	private boolean justStarted;
 	private boolean requestsToMake;
-	private final int nodeId;
+	private boolean pendingRequest;
+	//private final int nodeId;
 	
 	protected AbCNode parent;
 	
@@ -55,7 +52,8 @@ public class ComponentNode extends AbCNode {
 		//behaviour = new Counting(nodeId);
 		justStarted = true;
 		requestsToMake = false;
-		this.nodeId = nodeId;
+		pendingRequest = false;
+		//this.nodeId = nodeId;
 		this.deliveryQueue = new PriorityQueue<AbCMessage>(10,new MessageComparator());
 	}
 
@@ -78,6 +76,7 @@ public class ComponentNode extends AbCNode {
 				result = result.add( getHandlingWaitingMessageActivity() );
 			} else {
 				requestsToMake |= behaviour.onStart();
+				justStarted = false;
 			}
 		} else {		
 			if (!deliveryQueue.isEmpty()&&(deliveryQueue.peek().getMessageIndex()==lastReceived+1)) {
@@ -85,7 +84,7 @@ public class ComponentNode extends AbCNode {
 			}
 		}
 		
-		if ((!isSending)&&(requestsToMake)) {
+		if ((!isSending)&&(requestsToMake)&&(!pendingRequest)) {
 			result = result.add( getSendRequestActivity() );
 		}
 		
@@ -133,7 +132,8 @@ public class ComponentNode extends AbCNode {
 							//System.out.println("Sda "+nodeId+" !");
 							getSystem().dataSent( ComponentNode.this, ComponentNode.this.nextId,startSendingTime);
 							ComponentBehaviour.GetMessage answ = behaviour.getMessage();
-							requestsToMake |= answ.wantSend;
+							requestsToMake = answ.wantSend;
+							pendingRequest = false;
 							Object[] data = answ.message == null ? null : answ.message.getData();
 							parent.receive( new AbCMessage(ComponentNode.this, MessageType.DATA, ComponentNode.this.nextId, data, null, parent));
 							isSending = false;
@@ -177,6 +177,7 @@ public class ComponentNode extends AbCNode {
 					public boolean execute(RandomGenerator r, double starting_time, double duration) {
 						//System.out.println("Sra "+nodeId+" !");
 						requestsToMake = false;
+						pendingRequest = true;
 						startSendingTime = starting_time;
 						ComponentNode.this.isSending = true;
 						ComponentNode.this.nextId = -1;

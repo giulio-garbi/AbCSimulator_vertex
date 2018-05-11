@@ -21,6 +21,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.cmg.ml.sam.sim.util.WeightedLinkedList;
 import org.cmg.ml.sam.sim.util.WeightedStructure;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 /**
  * @author loreti
  *
@@ -61,6 +63,12 @@ public class AgentBasedModel<S> implements ModelI {
 
 	@Override
 	public void timeStep(double dt) {
+	}
+
+	@Override
+	public double getLastDeliveryTime() {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
 	}
 
 }

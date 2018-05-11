@@ -32,6 +32,16 @@ public class SimulationEnvironment<S extends ModelI> {
 	private S model;
 	private SamplingFunction<S> sampling_function;
 	private int iterations = 0;
+	private ArrayList<Double> executionTimes = new ArrayList<>();
+	private double avgExecTime, stimDevStdExecTime;
+
+	public double getAvgExecTime() {
+		return avgExecTime;
+	}
+
+	public double getStimDevStdExecTime() {
+		return stimDevStdExecTime;
+	}
 
 	public SimulationEnvironment(SimulationFactory<S> factory) {
 		if (factory == null) {
@@ -51,6 +61,7 @@ public class SimulationEnvironment<S extends ModelI> {
 
 	public synchronized void simulate(SimulationMonitor monitor , int iterations, double deadline) {
 		RandomGeneratorRegistry rgi = RandomGeneratorRegistry.getInstance();
+		executionTimes = new ArrayList<>();
 		rgi.register(random);
 		for (int i = 0; (((monitor == null)||(!monitor.isCancelled()))&&(i < iterations)) ; i++) {
 			if (monitor != null) {
@@ -72,7 +83,23 @@ public class SimulationEnvironment<S extends ModelI> {
 			System.out.flush();
 			this.iterations++;
 		}
-		rgi.unregister();		
+		rgi.unregister();
+		avgExecTime = stimDevStdExecTime = 0;
+		assert(executionTimes.size() == this.iterations);
+		if(this.iterations > 0) {
+			double sumExecTime = 0;
+			for(double t: executionTimes) {
+				sumExecTime += t;
+			}
+			avgExecTime = sumExecTime / this.iterations;
+			if(this.iterations > 1) {
+				double sumExecTimeDeltaSq = 0;
+				for(double t: executionTimes) {
+					sumExecTimeDeltaSq += (t-avgExecTime)*(t-avgExecTime);
+				}
+				stimDevStdExecTime = Math.sqrt(sumExecTimeDeltaSq/(this.iterations - 1));
+			}
+		}
 	}
 	
 	public synchronized void simulate(int iterations, double deadline) {
@@ -100,6 +127,7 @@ public class SimulationEnvironment<S extends ModelI> {
 				if (sampling_function != null) {
 					sampling_function.end(time);
 				}
+				registerExecutionTime(model);
 				return time;
 			}
 			time += dt;
@@ -115,8 +143,15 @@ public class SimulationEnvironment<S extends ModelI> {
 		if (sampling_function != null) {
 			sampling_function.end(time);
 		}
+		
+		registerExecutionTime(model);
 		return time;	
 	}
+	private void registerExecutionTime(ModelI model2) {
+		// TODO Auto-generated method stub
+		this.executionTimes.add(model2.getLastDeliveryTime()) ;
+	}
+
 	private double doSimulate(double deadline) {
 		return doSimulate(null,deadline);
 	}

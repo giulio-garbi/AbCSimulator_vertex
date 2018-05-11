@@ -43,6 +43,8 @@ public class AbCSystem implements ModelI {
 	protected final HashMap<Integer,Integer> deliveryTable;
 	
 	protected final HashMap<Integer,Double> deliveryTime;
+	
+	private double lastDeliveryTime = -1;
 //	private int sender;
 //	
 //	private int maxSenders = Integer.MAX_VALUE;
@@ -53,6 +55,7 @@ public class AbCSystem implements ModelI {
 		this.sendingTime = new HashMap<>();
 		this.deliveryTable = new HashMap<>();
 		this.deliveryTime = new HashMap<>();
+		this.lastDeliveryTime = -1;
 	}
 
 	@Override
@@ -86,6 +89,7 @@ public class AbCSystem implements ModelI {
 		if (c == agents) {
 			double t0 = sendingTime.get(index);
 			double delta = time-t0;
+			lastDeliveryTime = Math.max(lastDeliveryTime, time);
 			deliveryStats.addValue(delta);
 			deliveryTime.put(index, delta);
 			deliveryTable.remove(index);
@@ -299,5 +303,9 @@ public class AbCSystem implements ModelI {
 	
 	public SummaryStatistics getMessageIntevalStatistics() {
 		return messageInterval;
+	}
+
+	public double getLastDeliveryTime() {
+		return lastDeliveryTime;
 	}
 }

@@ -65,16 +65,18 @@ public class RunRingServerSimulation {
 		FileOutputStream fout=new FileOutputStream("mfile.txt");
 		
 		// change simluation Time
-		double simulationTime = 10000;//2000000000000000.0;
+		double simulationTime = 30000;//2000000000000000.0;
+		//155 => 10k
+		//310 => 15k
 		
 		// choose the number of samples
 		int samples = 100;
 		
 		// choose the number of replications 
-		int replications = 10;
+		int replications = 1;
 		
 		// choose the system configurations
-		RingStructureFactory factory = new RingStructureFactory(31,5,0.1f, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
+		RingStructureFactory factory = new RingStructureFactory(31,20,0.05f, (x,y) -> 15.0 , x -> 1000.0 , x -> 1.0 );
 		SimulationEnvironment<AbCSystem> env = new SimulationEnvironment<>(factory);
 		
 		// the measures we consider 
